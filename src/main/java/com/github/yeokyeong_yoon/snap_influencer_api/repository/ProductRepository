@@ -1,0 +1,12 @@
+package com.github.yeokyeong_yoon.snap_influencer_api.repository;
+
+import com.github.yeokyeong_yoon.snap_influencer_api.domain.Category;
+import com.github.yeokyeong_yoon.snap_influencer_api.domain.Product;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface ProductRepository extends JpaRepository<Product, Long> {
+    List<Product> findByCategory(Category category);
+    List<Product> findByBrand_Name(String brandName);
+}
