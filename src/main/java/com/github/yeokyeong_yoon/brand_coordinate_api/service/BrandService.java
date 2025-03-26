@@ -30,16 +30,20 @@ public class BrandService {
             boolean hasAllCategories = true;
 
             for (Category category : Category.values()) {
-                var cheapest = products.stream()
+                var productsInCategory = products.stream()
                     .filter(p -> p.getCategory() == category)
-                    .min(Comparator.comparingInt(Product::getPrice));
+                    .toList();
                 
-                if (cheapest.isEmpty()) {
+                if (productsInCategory.isEmpty()) {
                     hasAllCategories = false;
                     break;
                 }
+                
+                if (productsInCategory.size() > 1) {
+                    throw new IllegalStateException("Failed: Brand " + brand.getName() + " has multiple products in category " + category.name());
+                }
 
-                var product = cheapest.get();
+                var product = productsInCategory.get(0);
                 cheapestProducts.add(new CheapestProductDto(
                     category.name(), 
                     brand.getName(), 
@@ -54,7 +58,7 @@ public class BrandService {
         }
 
         if (responses.isEmpty()) {
-            throw new IllegalStateException("No brand has products in all categories");
+            throw new IllegalStateException("Failed: No brand has products in all categories");
         }
 
         int minTotal = responses.stream()
@@ -66,4 +70,4 @@ public class BrandService {
             .filter(r -> r.total() == minTotal)
             .toList();
     }
-} 
+}
