@@ -1,4 +1,4 @@
-package com.github.yeokyeong_yoon.snap_influencer_api.domain;
+package com.github.yeokyeong_yoon.brand_coordinate_api.domain;
 
 public enum Category {
     TOP,
@@ -8,5 +8,5 @@ public enum Category {
     BAG,
     HAT,
     SOCKS,
-    ACCESSORY;
-}
+    ACCESSORY
+}   
