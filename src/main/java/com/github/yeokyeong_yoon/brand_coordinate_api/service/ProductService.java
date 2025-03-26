@@ -23,11 +23,9 @@ public class ProductService {
         int total = 0;
 
         for (Category category : Category.values()) {
-            List<Product> products = productRepository.findByCategory(category);
-            Product cheapest = products.stream()
+            Product cheapest = productRepository.findByCategory(category).stream()
                     .min(Comparator.comparingInt(Product::getPrice))
                     .orElseThrow(() -> new IllegalArgumentException("No product found for category: " + category));
-
             results.add(new CheapestProductDto(category.name(), cheapest.getBrand().getName(), cheapest.getPrice()));
             total += cheapest.getPrice();
         }

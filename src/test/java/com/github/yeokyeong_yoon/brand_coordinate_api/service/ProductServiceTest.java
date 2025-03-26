@@ -42,6 +42,7 @@ class ProductServiceTest {
 
     @Test
     void getCheapestByCategory_ShouldReturnCheapestProductForEachCategory() {
+        // Given
         for (Category category : Category.values()) {
             Product product1 = new Product();
             product1.setBrand(brandA);
@@ -49,27 +50,12 @@ class ProductServiceTest {
             product1.setPrice(10000);
 
             Product product2 = new Product();
-            product2.setBrand(brandA);
-            product2.setCategory(category); 
-            product2.setPrice(12000);
-
-            Product product3 = new Product();
-            product3.setBrand(brandB);
-            product3.setCategory(category);
-            product3.setPrice(8000);
-
-            Product product4 = new Product();
-            product4.setBrand(brandB);
-            product4.setCategory(category);
-            product4.setPrice(9000);
-
-            Product product5 = new Product();
-            product5.setBrand(brandB);
-            product5.setCategory(category);
-            product5.setPrice(7000);
+            product2.setBrand(brandB);
+            product2.setCategory(category);
+            product2.setPrice(8000);
 
             when(productRepository.findByCategory(category))
-                    .thenReturn(Arrays.asList(product1, product2, product3, product4, product5));
+                    .thenReturn(Arrays.asList(product1, product2));
         }
 
         // When
@@ -78,23 +64,83 @@ class ProductServiceTest {
         // Then
         assertThat(response).isNotNull();
         assertThat(response.results()).hasSize(Category.values().length);
-        assertThat(response.total()).isEqualTo(7000 * Category.values().length);
+        assertThat(response.total()).isEqualTo(8000 * Category.values().length);
 
         response.results().forEach(result -> {
             assertThat(result.brand()).isEqualTo("B");
-            assertThat(result.price()).isEqualTo(7000);
+            assertThat(result.price()).isEqualTo(8000);
         });
     }
 
     @Test
-    void getCheapestByCategory_WhenNoProducts_ShouldThrowException() {
+    void getCheapestByCategory_WhenSingleProduct_ShouldReturnThatProduct() {
         // Given
+        Product singleProduct = new Product();
+        singleProduct.setBrand(brandA);
+        singleProduct.setCategory(Category.TOP);
+        singleProduct.setPrice(10000);
+
+        when(productRepository.findByCategory(Category.TOP))
+                .thenReturn(List.of(singleProduct));
+
+        // Mock empty lists for other categories to focus test on TOP
+        for (Category category : Category.values()) {
+            if (category != Category.TOP) {
+                when(productRepository.findByCategory(category))
+                        .thenReturn(List.of(singleProduct));
+            }
+        }
+
+        // When
+        CheapestByCategoryResponse response = productService.getCheapestByCategory();
+
+        // Then
+        assertThat(response.results().get(0).brand()).isEqualTo("A");
+        assertThat(response.results().get(0).price()).isEqualTo(10000);
+    }
+
+    @Test
+    void getCheapestByCategory_WhenSamePriceProducts_ShouldReturnAny() {
+        // Given
+        Product product1 = new Product();
+        product1.setBrand(brandA);
+        product1.setCategory(Category.TOP);
+        product1.setPrice(10000);
+
+        Product product2 = new Product();
+        product2.setBrand(brandB);
+        product2.setCategory(Category.TOP);
+        product2.setPrice(10000);
+
+        when(productRepository.findByCategory(Category.TOP))
+                .thenReturn(Arrays.asList(product1, product2));
+
+        // Mock data for other categories
+        for (Category category : Category.values()) {
+            if (category != Category.TOP) {
+                when(productRepository.findByCategory(category))
+                        .thenReturn(Arrays.asList(product1, product2));
+            }
+        }
+
+        // When
+        CheapestByCategoryResponse response = productService.getCheapestByCategory();
+
+        // Then
+        assertThat(response.results().get(0).price()).isEqualTo(10000);
+        // Don't assert brand as it could be either A or B
+    }
+
+    @Test
+    void getCheapestByCategory_WhenNoProducts_ShouldThrowException() {
+        // Given - test only TOP category since exception will be thrown immediately
         when(productRepository.findByCategory(Category.TOP))
                 .thenReturn(List.of());
 
         // When & Then
-        assertThat(assertThrows(IllegalArgumentException.class,
-                () -> productService.getCheapestByCategory()))
-                .hasMessageContaining("No product found for category");
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> productService.getCheapestByCategory());
+
+        assertThat(exception.getMessage()).isEqualTo("No product found for category: TOP");
     }
-} 
+}
