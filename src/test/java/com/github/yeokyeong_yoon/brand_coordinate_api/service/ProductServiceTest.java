@@ -3,6 +3,7 @@ package com.github.yeokyeong_yoon.brand_coordinate_api.service;
 import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Brand;
 import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Category;
 import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Product;
+import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CheapestByBrandResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CheapestByCategoryResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -142,5 +143,49 @@ class ProductServiceTest {
                 () -> productService.getCheapestByCategory());
 
         assertThat(exception.getMessage()).isEqualTo("No product found for category: TOP");
+    }
+
+    @Test
+    void getCheapestTotalBrand_ShouldReturnCheapestBrand() {
+        // Given
+        Brand brandA = new Brand();
+        brandA.setName("A");
+
+        Brand brandB = new Brand();
+        brandB.setName("B");
+
+        // Mock products for brand A
+        Product productA1 = new Product();
+        productA1.setBrand(brandA); 
+        productA1.setCategory(Category.TOP);
+        productA1.setPrice(10000);
+
+        Product productA2 = new Product();
+        productA2.setBrand(brandA);
+        productA2.setCategory(Category.TOP);
+        productA2.setPrice(10000);
+
+        // Mock products for brand B
+        Product productB1 = new Product();
+        productB1.setBrand(brandB);
+        productB1.setCategory(Category.TOP);
+        productB1.setPrice(10000);
+
+        Product productB2 = new Product();
+        productB2.setBrand(brandB);
+        productB2.setCategory(Category.TOP);
+        productB2.setPrice(10000);  
+
+        when(productRepository.findByBrand(brandA))
+                .thenReturn(Arrays.asList(productA1, productA2));
+
+        when(productRepository.findByBrand(brandB))
+                .thenReturn(Arrays.asList(productB1, productB2));
+
+        // When
+        CheapestByBrandResponse response = productService.getCheapestTotalBrand();
+
+        // Then
+        assertThat(response.results().get(0).brand()).isEqualTo("A");   
     }
 }
