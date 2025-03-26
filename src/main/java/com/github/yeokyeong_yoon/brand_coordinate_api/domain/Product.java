@@ -1,4 +1,4 @@
-package com.github.yeokyeong_yoon.snap_influencer_api.domain;
+package com.github.yeokyeong_yoon.brand_coordinate_api.domain;
 
 import jakarta.persistence.*;
 
