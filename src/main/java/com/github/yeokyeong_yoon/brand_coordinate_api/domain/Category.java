@@ -14,6 +14,6 @@ public enum Category {
 
     @Override
     public String toString() {
-        return StringUtils.capitalize(name().toLowerCase());
+        return StringUtils.capitalize(name());
     }
 }
