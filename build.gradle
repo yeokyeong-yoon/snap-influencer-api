@@ -9,6 +9,9 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	sourceCompatibility = JavaVersion.VERSION_17
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
 }
 
 repositories {
@@ -18,7 +21,8 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'com.h2database:h2'
+	implementation 'com.h2database:h2:2.2.224'
+	runtimeOnly 'com.h2database:h2:2.2.224'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -32,4 +36,8 @@ test {
 	testLogging {
 		events "passed", "skipped", "failed"
 	}
+}
+
+springBoot {
+	mainClass = 'com.github.yeokyeong_yoon.brand_coordinate_api.BrandCoordinateApiApplication'
 }
