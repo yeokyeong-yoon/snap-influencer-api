@@ -98,10 +98,10 @@ class BrandServiceTest {
         CheapestBrandResponse response = brandService.findCheapestBrandTotal();
 
         // Then
-        assertThat(response.brandTotals().get(0).brand()).isEqualTo("A");
-        assertThat(response.brandTotals().get(0).totalPrice()).isEqualTo(91000);
-        assertThat(response.brandTotals().get(0).categories())
-            .extracting(CheapestBrandResponse.BrandTotal.CategoryPrice::category)
+        assertThat(response.cheapestBrands().get(0).brand()).isEqualTo("A");
+        assertThat(response.cheapestBrands().get(0).total()).isEqualTo(91000);
+        assertThat(response.cheapestBrands().get(0).categoryPrices())
+            .extracting(CheapestBrandResponse.CategoryPrice::category)
             .containsExactlyInAnyOrder(
                 Category.TOP.name(),
                 Category.OUTER.name(),
@@ -209,8 +209,8 @@ class BrandServiceTest {
         CheapestBrandResponse response = brandService.findCheapestBrandTotal();
 
         // Then
-        assertThat(response.brandTotals().get(0).brand()).isEqualTo("A");
-        assertThat(response.brandTotals().get(0).totalPrice()).isEqualTo(91000);
+        assertThat(response.cheapestBrands().get(0).brand()).isEqualTo("A");
+        assertThat(response.cheapestBrands().get(0).total()).isEqualTo(91000);
     }
 
     @Test
@@ -307,8 +307,8 @@ class BrandServiceTest {
         CheapestBrandResponse response = brandService.findCheapestBrandTotal();
 
         // Then
-        assertThat(response.brandTotals().get(0).brand()).isEqualTo("A");
-        assertThat(response.brandTotals().get(0).totalPrice()).isEqualTo(80000);
+        assertThat(response.cheapestBrands().get(0).brand()).isEqualTo("A");
+        assertThat(response.cheapestBrands().get(0).total()).isEqualTo(80000);
     }
 
     @Test
@@ -369,8 +369,8 @@ class BrandServiceTest {
         CheapestBrandResponse response = brandService.findCheapestBrandTotal();
 
         // Then
-        assertThat(response.brandTotals().get(0).brand()).isEqualTo("A");
-        assertThat(response.brandTotals().get(0).totalPrice()).isEqualTo(91000);
+        assertThat(response.cheapestBrands().get(0).brand()).isEqualTo("A");
+        assertThat(response.cheapestBrands().get(0).total()).isEqualTo(91000);
     }
 
     @Test
@@ -521,7 +521,7 @@ class BrandServiceTest {
         CheapestBrandResponse response = brandService.findCheapestBrandTotal();
 
         // Then
-        assertThat(response.brandTotals().get(0).brand()).isEqualTo("A");
-        assertThat(response.brandTotals().get(0).totalPrice()).isEqualTo(91000);
+        assertThat(response.cheapestBrands().get(0).brand()).isEqualTo("A");
+        assertThat(response.cheapestBrands().get(0).total()).isEqualTo(91000);
     }
 } 

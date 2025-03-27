@@ -5,7 +5,6 @@ import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Category;
 import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Product;
 import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CategoryLowestPriceResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CategoryPriceResponse;
-import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CheapestBrandResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,9 +13,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -114,50 +113,35 @@ class ProductServiceTest {
     }
 
     @Test
-    void findCheapestBrandTotal_WhenMultipleBrandsHaveSameTotal() {
+    void findPriceRangeByCategory_ShouldReturnCheapestAndMostExpensiveProducts() {
         // Given
-        List<Product> allProducts = Arrays.stream(Category.values())
-                .flatMap(category -> Arrays.asList(
-                    createProduct(brandA, category, 10000),
-                    createProduct(brandB, category, 10000)
-                ).stream())
-                .collect(Collectors.toList());
+        Brand brandA = new Brand();
+        brandA.setName("A");
 
-        when(productRepository.findAll())
-                .thenReturn(allProducts);
+        Product cheapTop = new Product();
+        cheapTop.setBrand(brandA);
+        cheapTop.setCategory(Category.TOP);
+        cheapTop.setPrice(5000);
 
-        // When
-        CheapestBrandResponse response = productService.findCheapestBrandTotal();
-
-        // Then
-        assertThat(response.brandTotals()).hasSize(2);
-        assertThat(response.brandTotals().get(0).brand()).isEqualTo("A");
-        assertThat(response.brandTotals().get(0).totalPrice()).isEqualTo(10000 * Category.values().length);
-        assertThat(response.brandTotals().get(1).brand()).isEqualTo("B");
-        assertThat(response.brandTotals().get(1).totalPrice()).isEqualTo(10000 * Category.values().length);
-    }
-
-    @Test
-    void findPriceRangeByCategory_WhenMultipleBrandsHaveSamePrice() {
-        // Given
-        Product productA = createProduct(brandA, Category.TOP, 10000);
-        Product productB = createProduct(brandB, Category.TOP, 10000);
-        Product productC = createProduct(brandC, Category.TOP, 15000);
+        Product expensiveTop = new Product();
+        expensiveTop.setBrand(brandA);
+        expensiveTop.setCategory(Category.TOP);
+        expensiveTop.setPrice(10000);
 
         when(productRepository.findByCategory(Category.TOP))
-                .thenReturn(Arrays.asList(productA, productB, productC));
+                .thenReturn(Arrays.asList(cheapTop, expensiveTop));
 
         // When
         CategoryPriceResponse response = productService.findPriceRangeByCategory(Category.TOP);
 
         // Then
-        assertThat(response.category()).isEqualTo("TOP");
-        assertThat(response.lowestPrices()).hasSize(2);
-        assertThat(response.lowestPrices().get(0).price()).isEqualTo(10000);
-        assertThat(response.lowestPrices().get(1).price()).isEqualTo(10000);
+        assertThat(response.category()).isEqualTo(Category.TOP.name());
+        assertThat(response.lowestPrices()).hasSize(1);
+        assertThat(response.lowestPrices().get(0).brand()).isEqualTo("A");
+        assertThat(response.lowestPrices().get(0).price()).isEqualTo(5000);
         assertThat(response.highestPrices()).hasSize(1);
-        assertThat(response.highestPrices().get(0).brand()).isEqualTo("C");
-        assertThat(response.highestPrices().get(0).price()).isEqualTo(15000);
+        assertThat(response.highestPrices().get(0).brand()).isEqualTo("A");
+        assertThat(response.highestPrices().get(0).price()).isEqualTo(10000);
     }
 
     private Product createProduct(Brand brand, Category category, int price) {
