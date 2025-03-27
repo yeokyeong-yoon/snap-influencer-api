@@ -32,7 +32,7 @@ public class AdminService {
         log.info("Attempting to register brand with name: {}", request.name());
         if (brandRepository.existsByName(request.name())) {
             log.error("Brand with name {} already exists", request.name());
-            throw new IllegalArgumentException("Brand with name " + request.name() + " already exists");
+            throw new IllegalArgumentException("이미 등록된 브랜드입니다: " + request.name());
         }
         
         Brand brand = new Brand();
@@ -51,12 +51,12 @@ public class AdminService {
         Brand brand = brandRepository.findById(brandId)
                 .orElseThrow(() -> {
                     log.error("Brand not found with id: {}", brandId);
-                    return new IllegalArgumentException("Brand not found with id: " + brandId);
+                    return new IllegalArgumentException("존재하지 않는 브랜드입니다: " + brandId);
                 });
         
         if (!brand.getName().equals(request.name()) && brandRepository.existsByName(request.name())) {
             log.error("Brand with name {} already exists", request.name());
-            throw new IllegalArgumentException("Brand with name " + request.name() + " already exists");
+            throw new IllegalArgumentException("이미 등록된 브랜드입니다: " + request.name());
         }
         
         brand.setName(request.name());
@@ -92,6 +92,16 @@ public class AdminService {
                     log.error("Brand not found with name: {}", request.brand());
                     return new IllegalArgumentException("Brand not found with name: " + request.brand());
                 });
+        
+        // Check for duplicate product
+        if (productRepository.existsByBrandAndCategoryAndPrice(brand, request.category(), request.price())) {
+            log.error("Product already exists: brand={}, category={}, price={}", 
+                    request.brand(), request.category(), request.price());
+            throw new IllegalArgumentException(
+                String.format("이미 등록된 상품입니다: 브랜드=%s, 카테고리=%s, 가격=%d", 
+                    request.brand(), request.category(), request.price())
+            );
+        }
         
         Product product = new Product();
         product.setBrand(brand);
