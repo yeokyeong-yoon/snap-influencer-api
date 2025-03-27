@@ -138,8 +138,15 @@ class AdminServiceTest {
     void registerProduct_ShouldCreateNewProduct() {
         // Given
         ProductRequest request = new ProductRequest("A", Category.SNEAKERS, 30000);
+        
+        Product expectedProduct = new Product();
+        expectedProduct.setId(1L);
+        expectedProduct.setBrand(brandA);
+        expectedProduct.setCategory(Category.SNEAKERS);
+        expectedProduct.setPrice(30000);
+
         when(brandRepository.findByName("A")).thenReturn(Optional.of(brandA));
-        when(productRepository.save(any(Product.class))).thenReturn(product1);
+        when(productRepository.save(any(Product.class))).thenReturn(expectedProduct);
 
         // When
         Product result = adminService.registerProduct(request);
