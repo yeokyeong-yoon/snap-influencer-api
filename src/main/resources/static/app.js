@@ -187,13 +187,32 @@ async function findCheapestBrandTotal() {
 
 // 카테고리별 가격 범위 조회
 async function findPriceRangeByCategory() {
+    let response;
     try {
         console.log('Fetching price range by category...');
         const category = document.getElementById('categorySelect').value;
         console.log('Selected category:', category);
         
-        const response = await fetch(`${API_BASE_URL}/categories/${category}/price-range`);
-        const data = await response.json();
+        response = await fetch(`${API_BASE_URL}/products/categories/${category}/price-range`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+        
+        if (!responseText) {
+            throw new Error('Empty response received');
+        }
+        
+        const data = JSON.parse(responseText);
         console.log('Received data:', data);
         
         if (!data || !data.success || !data.data || !data.data.lowestPrices || !data.data.highestPrices) {
@@ -238,6 +257,11 @@ async function findPriceRangeByCategory() {
     } catch (error) {
         console.error('Error in findPriceRangeByCategory:', error);
         handleError(error, response);
+        document.getElementById('priceRangeResult').innerHTML = `
+            <div class="alert alert-danger">
+                오류가 발생했습니다: ${error.message}
+            </div>
+        `;
     }
 }
 
@@ -250,26 +274,38 @@ async function registerBrand() {
             alert('브랜드 이름을 입력해주세요.');
             return;
         }
-        
+
         response = await fetch(`${API_BASE_URL}/admin/brands`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ name: brandName })
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
         
-        const data = await response.json();
+        if (!responseText) {
+            throw new Error('Empty response received');
+        }
         
-        if (response.ok) {
-            alert('브랜드가 등록되었습니다.');
-            document.getElementById('brandName').value = '';
-        } else {
+        const data = JSON.parse(responseText);
+        
+        if (!data.success) {
             throw new Error(data.message || '브랜드 등록에 실패했습니다.');
         }
+
+        alert('브랜드가 성공적으로 등록되었습니다.');
+        document.getElementById('brandName').value = '';
     } catch (error) {
         console.error('Error in registerBrand:', error);
-        alert(error.message);
+        handleError(error, response);
     }
 }
 

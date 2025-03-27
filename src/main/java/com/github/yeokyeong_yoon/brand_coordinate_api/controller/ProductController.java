@@ -16,7 +16,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/api/products")
 @CrossOrigin(origins = "*")
 public class ProductController {
 
@@ -97,13 +97,18 @@ public class ProductController {
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);
             result.put("data", response);
-            return ResponseEntity.ok(result);
+            
+            return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(result);
         } catch (Exception e) {
             log.error("Failed to get price range for category {}: {}", category, e.getMessage());
             Map<String, Object> error = new HashMap<>();
             error.put("success", false);
             error.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(error);
         }
     }
 } 
