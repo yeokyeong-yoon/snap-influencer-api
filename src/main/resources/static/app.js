@@ -243,6 +243,7 @@ async function findPriceRangeByCategory() {
 
 // 브랜드 등록
 async function registerBrand() {
+    let response;
     try {
         const brandName = document.getElementById('brandName').value;
         if (!brandName) {
@@ -250,7 +251,7 @@ async function registerBrand() {
             return;
         }
         
-        const response = await fetch(`${API_BASE_URL}/admin/brands`, {
+        response = await fetch(`${API_BASE_URL}/admin/brands`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -258,15 +259,17 @@ async function registerBrand() {
             body: JSON.stringify({ name: brandName })
         });
         
+        const data = await response.json();
+        
         if (response.ok) {
             alert('브랜드가 등록되었습니다.');
             document.getElementById('brandName').value = '';
         } else {
-            const error = await response.json();
-            throw new Error(error.message);
+            throw new Error(data.message || '브랜드 등록에 실패했습니다.');
         }
     } catch (error) {
-        handleError(error, response);
+        console.error('Error in registerBrand:', error);
+        alert(error.message);
     }
 }
 
@@ -295,17 +298,19 @@ async function registerProduct() {
             })
         });
         
+        const data = await response.json();
+        
         if (response.ok) {
             alert('상품이 등록되었습니다.');
             document.getElementById('productBrand').value = '';
             document.getElementById('productPrice').value = '';
             loadProducts();
         } else {
-            const error = await response.json();
-            throw new Error(error.message);
+            throw new Error(data.message || '상품 등록에 실패했습니다.');
         }
     } catch (error) {
-        handleError(error, response);
+        console.error('Error in registerProduct:', error);
+        alert(error.message);
     }
 }
 
