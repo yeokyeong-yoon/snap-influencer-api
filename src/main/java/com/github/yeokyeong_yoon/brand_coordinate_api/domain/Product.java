@@ -11,7 +11,7 @@ public class Product {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "brand_name")
+    @JoinColumn(name = "brand_id")
     private Brand brand;
 
     @Enumerated(EnumType.STRING)
