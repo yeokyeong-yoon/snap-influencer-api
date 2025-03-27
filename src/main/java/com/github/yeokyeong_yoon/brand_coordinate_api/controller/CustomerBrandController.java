@@ -1,5 +1,6 @@
 package com.github.yeokyeong_yoon.brand_coordinate_api.controller;
 
+import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CheapestBrandRequest;
 import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CheapestBrandResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.service.BrandService;
 import lombok.extern.slf4j.Slf4j;
@@ -32,11 +33,11 @@ public class CustomerBrandController {
             .body(response);
     }
 
-    @GetMapping("/cheapest")
-    public ResponseEntity<Map<String, Object>> getCheapestBrandTotal() {
-        log.info("Backend: Received request for GET /brands/cheapest");
+    @PostMapping("/cheapest")
+    public ResponseEntity<Map<String, Object>> getCheapestBrandTotal(@RequestBody CheapestBrandRequest request) {
+        log.info("Backend: Received request for POST /brands/cheapest with categories: {}", request.categories());
         try {
-            CheapestBrandResponse response = brandService.findCheapestBrandTotal();
+            CheapestBrandResponse response = brandService.findCheapestBrandTotal(request.categories());
             log.debug("Backend: Generated response: {}", response);
             
             Map<String, Object> result = new HashMap<>();

@@ -49,6 +49,43 @@
                     <h5 class="card-title mb-0">최저가 브랜드 세트</h5>
                 </div>
                 <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">카테고리 선택</label>
+                        <div class="category-checkboxes">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="TOP" id="topCheck" checked>
+                                <label class="form-check-label" for="topCheck">상의</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="OUTER" id="outerCheck" checked>
+                                <label class="form-check-label" for="outerCheck">아우터</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="PANTS" id="pantsCheck" checked>
+                                <label class="form-check-label" for="pantsCheck">하의</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="SNEAKERS" id="sneakersCheck" checked>
+                                <label class="form-check-label" for="sneakersCheck">스니커즈</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="BAG" id="bagCheck" checked>
+                                <label class="form-check-label" for="bagCheck">가방</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="HAT" id="hatCheck" checked>
+                                <label class="form-check-label" for="hatCheck">모자</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="SOCKS" id="socksCheck" checked>
+                                <label class="form-check-label" for="socksCheck">양말</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="ACCESSORY" id="accessoryCheck" checked>
+                                <label class="form-check-label" for="accessoryCheck">액세서리</label>
+                            </div>
+                        </div>
+                    </div>
                     <button class="btn btn-primary" onclick="findCheapestBrandTotal()">조회하기</button>
                     <div id="cheapestBrandResult" class="mt-3"></div>
                 </div>

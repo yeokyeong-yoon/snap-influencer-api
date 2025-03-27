@@ -44,8 +44,14 @@ public class BrandService {
     /**
      * 구현 2) 단일 브랜드로 모든 카테고리 상품을 구매할 때 최저가격에 판매하는 브랜드와 카테고리의 상품가격, 총액을 조회
      */
-    public CheapestBrandResponse findCheapestBrandTotal() {
-        log.info("Starting findCheapestBrandTotal");
+    public CheapestBrandResponse findCheapestBrandTotal(List<Category> selectedCategories) {
+        log.info("Starting findCheapestBrandTotal with categories: {}", selectedCategories);
+        
+        if (selectedCategories == null || selectedCategories.isEmpty()) {
+            log.error("No categories selected");
+            throw new IllegalArgumentException("카테고리를 선택해주세요");
+        }
+
         List<Product> allProducts = productRepository.findAll();
         log.debug("Found {} total products", allProducts.size());
         
@@ -57,7 +63,17 @@ public class BrandService {
         Map<Brand, Map<Category, Integer>> brandPrices = new HashMap<>();
         Map<Brand, Integer> brandTotals = new HashMap<>();
 
-        for (Product product : allProducts) {
+        // Filter products by selected categories
+        List<Product> selectedProducts = allProducts.stream()
+            .filter(product -> selectedCategories.contains(product.getCategory()))
+            .collect(Collectors.toList());
+
+        if (selectedProducts.isEmpty()) {
+            log.error("No products found for selected categories");
+            throw new IllegalArgumentException("선택한 카테고리의 상품이 없습니다");
+        }
+
+        for (Product product : selectedProducts) {
             Brand brand = product.getBrand();
             Category category = product.getCategory();
             int price = product.getPrice();
@@ -68,23 +84,40 @@ public class BrandService {
         }
         log.debug("Processed {} brands with their prices", brandPrices.size());
 
-        int minTotal = brandTotals.values().stream()
-                .mapToInt(Integer::intValue)
-                .min()
-                .orElse(Integer.MAX_VALUE);
+        // Find brands that have all selected categories
+        List<Brand> brandsWithAllCategories = brandPrices.entrySet().stream()
+            .filter(entry -> entry.getValue().keySet().containsAll(selectedCategories))
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
+
+        if (brandsWithAllCategories.isEmpty()) {
+            log.error("No brands found with all selected categories");
+            return new CheapestBrandResponse(new ArrayList<>());
+        }
+
+        // Find minimum total among brands with all categories
+        int minTotal = brandsWithAllCategories.stream()
+            .mapToInt(brand -> selectedCategories.stream()
+                .mapToInt(category -> brandPrices.get(brand).get(category))
+                .sum())
+            .min()
+            .orElse(Integer.MAX_VALUE);
         log.debug("Found minimum total price: {}", minTotal);
 
         List<CheapestBrandResponse.BrandTotal> result = new ArrayList<>();
-        for (Map.Entry<Brand, Integer> entry : brandTotals.entrySet()) {
-            if (entry.getValue() == minTotal) {
-                Brand brand = entry.getKey();
+        for (Brand brand : brandsWithAllCategories) {
+            int total = selectedCategories.stream()
+                .mapToInt(category -> brandPrices.get(brand).get(category))
+                .sum();
+
+            if (total == minTotal) {
                 log.debug("Processing brand with minimum total: {}", brand.getName());
                 List<CheapestBrandResponse.CategoryPrice> categoryPrices = new ArrayList<>();
                 
-                for (Map.Entry<Category, Integer> priceEntry : brandPrices.get(brand).entrySet()) {
+                for (Category category : selectedCategories) {
                     categoryPrices.add(new CheapestBrandResponse.CategoryPrice(
-                        priceEntry.getKey().name(),
-                        priceEntry.getValue()
+                        category.name(),
+                        brandPrices.get(brand).get(category)
                     ));
                 }
                 

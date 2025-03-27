@@ -99,12 +99,29 @@ async function findLowestPricesByCategory() {
 // 최저가 브랜드 세트 조회
 async function findCheapestBrandTotal() {
     try {
+        // Get selected categories
+        const selectedCategories = [
+            'TOP', 'OUTER', 'PANTS', 'SNEAKERS', 'BAG', 'HAT', 'SOCKS', 'ACCESSORY'
+        ].filter(category => document.getElementById(`${category.toLowerCase()}Check`).checked);
+
+        if (selectedCategories.length === 0) {
+            document.getElementById('cheapestBrandResult').innerHTML = `
+                <div class="error">
+                    최소한 하나의 카테고리를 선택해주세요.
+                </div>
+            `;
+            return;
+        }
+
+        console.log('Frontend: Selected categories:', selectedCategories);
         console.log('Frontend: Making API call to /brands/cheapest');
+        
         const response = await fetch(`${API_BASE_URL}/brands/cheapest`, {
-            method: 'GET',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({ categories: selectedCategories })
         });
 
         console.log('Frontend: Response status:', response.status);
@@ -132,6 +149,15 @@ async function findCheapestBrandTotal() {
         const brandTotals = data.data.cheapestBrands;
         console.log('Frontend: Brand totals:', brandTotals);
 
+        if (brandTotals.length === 0) {
+            document.getElementById('cheapestBrandResult').innerHTML = `
+                <div class="error">
+                    선택한 카테고리의 모든 상품을 보유한 브랜드가 없습니다.
+                </div>
+            `;
+            return;
+        }
+
         let html = '<h3>최저가 브랜드 세트</h3>';
         brandTotals.forEach(brandTotal => {
             html += `
@@ -151,7 +177,11 @@ async function findCheapestBrandTotal() {
         document.getElementById('cheapestBrandResult').innerHTML = html;
     } catch (error) {
         console.error('Frontend: Error in findCheapestBrandTotal:', error);
-        document.getElementById('cheapestBrandResult').innerHTML = `<p class="error">Error: ${error.message}</p>`;
+        document.getElementById('cheapestBrandResult').innerHTML = `
+            <div class="error">
+                Error: ${error.message}
+            </div>
+        `;
     }
 }
 

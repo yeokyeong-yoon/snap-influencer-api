@@ -83,4 +83,50 @@ body {
 
 .product-item:hover {
     background-color: #f8f9fa;
+}
+
+.category-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.form-check {
+    margin-bottom: 0;
+}
+
+.error {
+    color: #dc3545;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    margin-top: 10px;
+}
+
+.brand-total {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.brand-total h4 {
+    color: #0d6efd;
+    margin-bottom: 10px;
+}
+
+.brand-total ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.brand-total li {
+    padding: 5px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.brand-total li:last-child {
+    border-bottom: none;
 } 
