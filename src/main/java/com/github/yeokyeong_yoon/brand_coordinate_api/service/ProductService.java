@@ -19,6 +19,7 @@ import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CategoryPriceResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.dto.PriceRangeResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 상품 관련 비즈니스 로직을 처리하는 서비스입니다.
@@ -28,12 +29,26 @@ import lombok.RequiredArgsConstructor;
  * 2. @RequiredArgsConstructor: 생성자 주입을 자동으로 해줍니다.
  * 3. @Transactional: 데이터베이스 작업의 일관성을 보장합니다.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ProductService {
     private final ProductRepository productRepository;
     
+    @Transactional
+    public Product saveProduct(Product product) {
+        if (productRepository.existsByBrandAndCategoryAndPrice(product.getBrand(), product.getCategory(), product.getPrice())) {
+            throw new IllegalArgumentException(
+                String.format("이미 등록된 상품입니다: 브랜드=%s, 카테고리=%s, 가격=%d", 
+                    product.getBrand().getName(), 
+                    product.getCategory(), 
+                    product.getPrice())
+            );
+        }
+        return productRepository.save(product);
+    }
+
     /**
      * 요구사항 1: 카테고리별 최저가격 브랜드와 총액 조회
      */

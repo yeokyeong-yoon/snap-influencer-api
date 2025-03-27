@@ -35,6 +35,14 @@ public class BrandService {
     private final BrandRepository brandRepository;
     private final ProductRepository productRepository;
 
+    @Transactional
+    public Brand saveBrand(Brand brand) {
+        if (brandRepository.existsByName(brand.getName())) {
+            throw new IllegalArgumentException("이미 등록된 브랜드입니다: " + brand.getName());
+        }
+        return brandRepository.save(brand);
+    }
+
     // Frontend 지원: 브랜드 목록 조회
     public List<Brand> getAllBrands() {
         log.debug("Fetching all brands");
