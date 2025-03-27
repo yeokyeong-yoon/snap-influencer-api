@@ -138,6 +138,7 @@ classDiagram
             +deleteBrand(Long): ResponseEntity
             +registerProduct(ProductRequest): ResponseEntity
             +getAllProducts(): ResponseEntity
+            +deleteProduct(Long): ResponseEntity
         }
 
         class ProductController {
@@ -160,6 +161,7 @@ classDiagram
             +deleteBrand(Long): void
             +registerProduct(ProductRequest): Product
             +getAllProducts(): List~Product~
+            +deleteProduct(Long): void
         }
         
         class ProductService {
@@ -250,11 +252,13 @@ classDiagram
 
 #### 고객용 API
 - `GET /api/products/lowest-prices`: 카테고리별 최저가 브랜드 조회
-- `GET /api/brands/cheapest`: 최저가 브랜드 세트 조회
-- `GET /api/categories/{category}/price-range`: 카테고리별 가격 범위 조회
+- `GET /api/products/cheapest-brand`: 최저가 브랜드 세트 조회
+- `GET /api/products/categories/{category}/price-range`: 카테고리별 가격 범위 조회
 
 #### 운영자용 API
 - `POST /api/admin/brands`: 브랜드 등록
+- `PUT /api/admin/brands/{brandId}`: 브랜드 수정
+- `DELETE /api/admin/brands/{brandId}`: 브랜드 삭제
 - `POST /api/admin/products`: 상품 등록
 - `GET /api/admin/products`: 상품 목록 조회
 - `DELETE /api/admin/products/{id}`: 상품 삭제
