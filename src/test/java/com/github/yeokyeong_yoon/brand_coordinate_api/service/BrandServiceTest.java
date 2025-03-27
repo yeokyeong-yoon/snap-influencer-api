@@ -14,11 +14,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -96,7 +98,9 @@ class BrandServiceTest {
                         hatA, socksA, accessoryA));
 
         // When
-        CheapestBrandResponse response = brandService.findCheapestBrandTotal();
+        List<Category> categories = Arrays.asList(Category.TOP, Category.OUTER, Category.PANTS, 
+                Category.SNEAKERS, Category.BAG, Category.HAT, Category.SOCKS, Category.ACCESSORY);
+        CheapestBrandResponse response = brandService.findCheapestBrandTotal(categories);
 
         // Then
         assertThat(response.cheapestBrands().get(0).brand()).isEqualTo("A");
@@ -207,7 +211,9 @@ class BrandServiceTest {
                 ));
 
         // When
-        CheapestBrandResponse response = brandService.findCheapestBrandTotal();
+        List<Category> categories = Arrays.asList(Category.TOP, Category.OUTER, Category.PANTS, 
+                Category.SNEAKERS, Category.BAG, Category.HAT, Category.SOCKS, Category.ACCESSORY);
+        CheapestBrandResponse response = brandService.findCheapestBrandTotal(categories);
 
         // Then
         assertThat(response.cheapestBrands().get(0).brand()).isEqualTo("A");
@@ -305,11 +311,18 @@ class BrandServiceTest {
                 ));
 
         // When
-        CheapestBrandResponse response = brandService.findCheapestBrandTotal();
+        List<Category> categories = Arrays.asList(Category.TOP, Category.OUTER, Category.PANTS, 
+                Category.SNEAKERS, Category.BAG, Category.HAT, Category.SOCKS, Category.ACCESSORY);
+        CheapestBrandResponse response = brandService.findCheapestBrandTotal(categories);
 
         // Then
-        assertThat(response.cheapestBrands().get(0).brand()).isEqualTo("A");
-        assertThat(response.cheapestBrands().get(0).total()).isEqualTo(80000);
+        assertThat(response.cheapestBrands()).hasSize(2);
+        assertThat(response.cheapestBrands())
+            .extracting(CheapestBrandResponse.BrandTotal::brand)
+            .containsExactlyInAnyOrder("A", "B");
+        assertThat(response.cheapestBrands())
+            .extracting(CheapestBrandResponse.BrandTotal::total)
+            .containsOnly(80000);
     }
 
     @Test
@@ -367,7 +380,9 @@ class BrandServiceTest {
                         hatA, socksA, accessoryA));
 
         // When
-        CheapestBrandResponse response = brandService.findCheapestBrandTotal();
+        List<Category> categories = Arrays.asList(Category.TOP, Category.OUTER, Category.PANTS, 
+                Category.SNEAKERS, Category.BAG, Category.HAT, Category.SOCKS, Category.ACCESSORY);
+        CheapestBrandResponse response = brandService.findCheapestBrandTotal(categories);
 
         // Then
         assertThat(response.cheapestBrands().get(0).brand()).isEqualTo("A");
@@ -375,14 +390,38 @@ class BrandServiceTest {
     }
 
     @Test
-    void getCheapestTotalBrand_WhenAllBrandsMissingCategories_ShouldThrowException() {
+    void getCheapestTotalBrand_WhenAllBrandsMissingCategories_ShouldReturnEmptyResponse() {
         // Given
-        when(productRepository.findAll())
-                .thenReturn(List.of());
+        Product topA = new Product();
+        topA.setBrand(brandA);
+        topA.setCategory(Category.TOP);
+        topA.setPrice(10000);
 
-        // When & Then
-        assertThrows(IllegalArgumentException.class,
-                () -> brandService.findCheapestBrandTotal());
+        Product pantsA = new Product();
+        pantsA.setBrand(brandA);
+        pantsA.setCategory(Category.PANTS);
+        pantsA.setPrice(10000);
+
+        Product topB = new Product();
+        topB.setBrand(brandB);
+        topB.setCategory(Category.TOP);
+        topB.setPrice(10000);
+
+        Product outerB = new Product();
+        outerB.setBrand(brandB);
+        outerB.setCategory(Category.OUTER);
+        outerB.setPrice(10000);
+
+        when(productRepository.findAll())
+                .thenReturn(Arrays.asList(topA, pantsA, topB, outerB));
+
+        // When
+        List<Category> categories = Arrays.asList(Category.TOP, Category.PANTS, Category.OUTER);
+        CheapestBrandResponse response = brandService.findCheapestBrandTotal(categories);
+
+        // Then
+        assertNotNull(response);
+        assertTrue(response.cheapestBrands().isEmpty());
     }
 
     @Test
@@ -519,7 +558,9 @@ class BrandServiceTest {
                 ));
 
         // When
-        CheapestBrandResponse response = brandService.findCheapestBrandTotal();
+        List<Category> categories = Arrays.asList(Category.TOP, Category.OUTER, Category.PANTS, 
+                Category.SNEAKERS, Category.BAG, Category.HAT, Category.SOCKS, Category.ACCESSORY);
+        CheapestBrandResponse response = brandService.findCheapestBrandTotal(categories);
 
         // Then
         assertThat(response.cheapestBrands().get(0).brand()).isEqualTo("A");
@@ -531,17 +572,33 @@ class BrandServiceTest {
         // given
         List<Category> categories = Arrays.asList(Category.TOP, Category.PANTS);
         
+        Product topA = new Product();
+        topA.setBrand(brandA);
+        topA.setCategory(Category.TOP);
+        topA.setPrice(5000);
+
+        Product pantsA = new Product();
+        pantsA.setBrand(brandA);
+        pantsA.setCategory(Category.PANTS);
+        pantsA.setPrice(10000);
+
+        when(productRepository.findAll())
+                .thenReturn(Arrays.asList(topA, pantsA));
+        
         // when
         CheapestBrandResponse response = brandService.findCheapestBrandTotal(categories);
         
         // then
         assertNotNull(response);
+        assertTrue(response.cheapestBrands().size() > 0);
+        assertThat(response.cheapestBrands().get(0).brand()).isEqualTo("A");
+        assertThat(response.cheapestBrands().get(0).total()).isEqualTo(15000);
     }
 
     @Test
     void findCheapestBrandTotal_EmptyCategories_ThrowsException() {
         // given
-        List<Category> categories = List.of();
+        List<Category> categories = Collections.emptyList();
         
         // when & then
         assertThrows(IllegalArgumentException.class,
@@ -556,5 +613,51 @@ class BrandServiceTest {
         // when & then
         assertThrows(IllegalArgumentException.class,
                 () -> brandService.findCheapestBrandTotal(categories));
+    }
+
+    @Test
+    void findCheapestBrandTotal_WithValidCategories_ReturnsValidResponse() {
+        // given
+        List<Category> categories = Arrays.asList(Category.TOP, Category.PANTS);
+        
+        Product topA = new Product();
+        topA.setBrand(brandA);
+        topA.setCategory(Category.TOP);
+        topA.setPrice(5000);
+
+        Product pantsA = new Product();
+        pantsA.setBrand(brandA);
+        pantsA.setCategory(Category.PANTS);
+        pantsA.setPrice(10000);
+
+        when(productRepository.findAll())
+                .thenReturn(Arrays.asList(topA, pantsA));
+        
+        // when
+        CheapestBrandResponse response = brandService.findCheapestBrandTotal(categories);
+        
+        // then
+        assertNotNull(response);
+        assertNotNull(response.cheapestBrands());
+        assertTrue(response.cheapestBrands().size() > 0);
+        assertThat(response.cheapestBrands().get(0).brand()).isEqualTo("A");
+        assertThat(response.cheapestBrands().get(0).total()).isEqualTo(15000);
+    }
+
+    @Test
+    void findCheapestBrandTotal_WithInvalidCategories_ThrowsException() {
+        // given
+        List<Category> categories = Arrays.asList(Category.HAT, Category.SOCKS);
+        
+        // when & then
+        assertThrows(IllegalArgumentException.class,
+                () -> brandService.findCheapestBrandTotal(categories));
+    }
+
+    @Test
+    void findCheapestBrandTotal_WithNullCategories_ThrowsException() {
+        // when & then
+        assertThrows(IllegalArgumentException.class,
+                () -> brandService.findCheapestBrandTotal(null));
     }
 } 
