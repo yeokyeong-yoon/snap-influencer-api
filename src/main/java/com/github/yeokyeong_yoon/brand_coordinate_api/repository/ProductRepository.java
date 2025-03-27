@@ -14,6 +14,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByCategory(Category category);
     List<Product> findByBrand(Brand brand);
     List<Product> findByCategoryAndPriceIn(Category category, List<Integer> prices);
+    Optional<Product> findFirstByCategoryOrderByPriceAsc(Category category);
+    Optional<Product> findFirstByCategoryOrderByPriceDesc(Category category);
 
     default List<Product> findPriceRangeProductsByCategory(Category category) {
         List<Integer> priceRange = List.of(
@@ -22,9 +24,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         );
         return findByCategoryAndPriceIn(category, priceRange);
     }
-
-    Optional<Product> findFirstByCategoryOrderByPriceAsc(Category category);
-    Optional<Product> findFirstByCategoryOrderByPriceDesc(Category category);
 
     // Get all products in a category sorted by price
     List<Product> findByCategoryOrderByPriceAsc(Category category);
