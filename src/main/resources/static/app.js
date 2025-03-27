@@ -272,6 +272,7 @@ async function registerBrand() {
 
 // 상품 등록
 async function registerProduct() {
+    let response;
     try {
         const brand = document.getElementById('productBrand').value;
         const category = document.getElementById('productCategory').value;
@@ -282,7 +283,7 @@ async function registerProduct() {
             return;
         }
         
-        const response = await fetch(`${API_BASE_URL}/admin/products`, {
+        response = await fetch(`${API_BASE_URL}/admin/products`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

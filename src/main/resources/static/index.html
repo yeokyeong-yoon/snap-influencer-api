@@ -166,8 +166,27 @@
                     <h5 class="card-title mb-0">전체 상품 목록</h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted mb-3">등록된 모든 상품을 확인할 수 있습니다.</p>
-                    <button class="btn btn-primary" onclick="loadProducts()">상품 목록 새로고침</button>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="brandFilter" placeholder="브랜드 검색">
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select" id="categoryFilter">
+                                <option value="">모든 카테고리</option>
+                                <option value="TOP">상의</option>
+                                <option value="PANTS">하의</option>
+                                <option value="OUTER">아우터</option>
+                                <option value="SNEAKERS">스니커즈</option>
+                                <option value="BAG">가방</option>
+                                <option value="HAT">모자</option>
+                                <option value="SOCKS">양말</option>
+                                <option value="ACCESSORY">액세서리</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100" onclick="loadProducts()">상품 목록 새로고침</button>
+                        </div>
+                    </div>
                     <div id="productList" class="mt-3"></div>
                 </div>
             </div>
