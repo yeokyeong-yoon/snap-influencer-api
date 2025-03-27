@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Setter
 @NoArgsConstructor
 public class Brand {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

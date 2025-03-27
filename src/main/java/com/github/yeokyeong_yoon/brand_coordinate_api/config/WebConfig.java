@@ -30,6 +30,6 @@ public class WebConfig implements WebMvcConfigurer {
         UrlPathHelper urlPathHelper = new UrlPathHelper();
         urlPathHelper.setRemoveSemicolonContent(false);
         configurer.setUrlPathHelper(urlPathHelper)
-                 .addPathPrefix("/api", c -> c.getName().contains("Controller"));
+                .addPathPrefix("/api", c -> c.getName().contains("Controller"));
     }
 } 

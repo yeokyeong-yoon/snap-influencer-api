@@ -1,9 +1,18 @@
 -- Insert brands
-INSERT INTO brand (name) VALUES 
-    ('A'), ('B'), ('C'), ('D'), ('E'), ('F'), ('G'), ('H'), ('I');
+INSERT INTO brand (name)
+VALUES ('A'),
+       ('B'),
+       ('C'),
+       ('D'),
+       ('E'),
+       ('F'),
+       ('G'),
+       ('H'),
+       ('I');
 
 -- Insert sample products for each brand and category
-INSERT INTO product (brand_id, category, price) VALUES
+INSERT INTO product (brand_id, category, price)
+VALUES
     -- Brand A products
     (1, 'TOP', 11200),
     (1, 'PANTS', 5500),

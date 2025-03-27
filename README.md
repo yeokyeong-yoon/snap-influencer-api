@@ -265,42 +265,46 @@ classDiagram
 프로젝트는 사용자 친화적인 웹 인터페이스를 제공합니다. 브라우저에서 `http://localhost:8080`에 접속하여 다음 기능들을 사용할 수 있습니다:
 
 #### 고객 서비스
+
 1. **카테고리별 최저가 브랜드 조회**
-   - 각 카테고리별로 최저가 브랜드와 가격을 확인
-   - 모든 카테고리 최저가의 총액 확인
-   ![카테고리별 최저가 브랜드 조회](docs/images/lowest-prices.png)
+    - 각 카테고리별로 최저가 브랜드와 가격을 확인
+    - 모든 카테고리 최저가의 총액 확인
+      ![카테고리별 최저가 브랜드 조회](docs/images/lowest-prices.png)
 
 2. **최저가 브랜드 세트 조회**
-   - 선택한 카테고리들의 상품을 한 브랜드에서 구매할 때 가장 저렴한 브랜드 확인
-   - 카테고리별 가격과 총액 확인
-   ![최저가 브랜드 세트 조회](docs/images/cheapest-brand.png)
+    - 선택한 카테고리들의 상품을 한 브랜드에서 구매할 때 가장 저렴한 브랜드 확인
+    - 카테고리별 가격과 총액 확인
+      ![최저가 브랜드 세트 조회](docs/images/cheapest-brand.png)
 
 3. **카테고리별 가격 범위 조회**
-   - 특정 카테고리의 최저가/최고가 브랜드와 가격 확인
-   - 동일 가격대의 여러 브랜드 동시 표시
-   ![카테고리별 가격 범위 조회](docs/images/price-range.png)
+    - 특정 카테고리의 최저가/최고가 브랜드와 가격 확인
+    - 동일 가격대의 여러 브랜드 동시 표시
+      ![카테고리별 가격 범위 조회](docs/images/price-range.png)
 
 #### 운영자 관리
+
 1. **브랜드 관리**
-   - 새로운 브랜드 등록
-   - 브랜드 정보 수정
-   - 브랜드 삭제
-   ![브랜드 관리](docs/images/brand-management.png)
+    - 새로운 브랜드 등록
+    - 브랜드 정보 수정
+    - 브랜드 삭제
+      ![브랜드 관리](docs/images/brand-management.png)
 
 2. **상품 관리**
-   - 브랜드별 상품 등록
-   - 상품 목록 조회 및 필터링
-   - 상품 삭제
-   ![상품 관리](docs/images/product-management.png)
+    - 브랜드별 상품 등록
+    - 상품 목록 조회 및 필터링
+    - 상품 삭제
+      ![상품 관리](docs/images/product-management.png)
 
 ### REST API
 
 #### 고객 서비스 API
+
 - `GET /api/products/lowest-prices`: 카테고리별 최저가 브랜드 조회
 - `POST /api/products/cheapest-brand`: 선택한 카테고리들의 최저가 브랜드 세트 조회
 - `GET /api/products/categories/{category}/price-range`: 특정 카테고리의 가격 범위 조회
 
 #### 운영자 API
+
 - `POST /api/admin/brands`: 새로운 브랜드 등록
 - `PUT /api/admin/brands/{id}`: 브랜드 정보 수정
 - `DELETE /api/admin/brands/{id}`: 브랜드 삭제
@@ -311,42 +315,48 @@ classDiagram
 ## 기술 스택
 
 - **Backend**
-  - Spring Boot 3.x
-  - Spring Data JPA
-  - H2 Database
-  - Lombok
+    - Spring Boot 3.x
+    - Spring Data JPA
+    - H2 Database
+    - Lombok
 
 - **Frontend**
-  - HTML5
-  - CSS3
-  - JavaScript (ES6+)
-  - Bootstrap 5
+    - HTML5
+    - CSS3
+    - JavaScript (ES6+)
+    - Bootstrap 5
 
 ## 실행 방법
 
 1. 프로젝트 클론
+
 ```bash
 git clone https://github.com/yourusername/brand-coordinate-api.git
 cd brand-coordinate-api
 ```
 
 2. 프로젝트 빌드
+
 ```bash
 ./gradlew build
 ```
 
 3. 애플리케이션 실행
+
 ```bash
 ./gradlew bootRun
 ```
 
 4. 브라우저에서 접속
+
 ```
 http://localhost:8080
 ```
 
 # Start of Selection
+
 5. Unit test 실행
+
 ```
 ./gradlew test
 ```

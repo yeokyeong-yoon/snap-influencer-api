@@ -1,246 +1,261 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>브랜드 코디네이터</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .section-header {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 5px solid #0d6efd;
-        }
-        .admin-section .section-header {
-            border-left-color: #6c757d;
-        }
-        .nav-pills .nav-link.active {
-            background-color: #0d6efd;
-        }
-        .admin-nav .nav-link.active {
-            background-color: #6c757d;
-        }
-        .admin-nav .nav-link:hover {
-            color: #6c757d;
-        }
-        #admin {
-            display: none;
-        }
-        #customer {
-            display: none;
-        }
-        .section-active {
-            display: block !important;
-        }
-        .admin-section .btn-primary {
-            background-color: #6c757d;
-            border-color: #6c757d;
-        }
-        .admin-section .btn-primary:hover {
-            background-color: #5a6268;
-            border-color: #545b62;
-        }
-        .admin-section .text-primary {
-            color: #6c757d !important;
-        }
-    </style>
-    <link href="styles.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>브랜드 코디네이터</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+  <style>
+    .section-header {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      border-left: 5px solid #0d6efd;
+    }
+
+    .admin-section .section-header {
+      border-left-color: #6c757d;
+    }
+
+    .nav-pills .nav-link.active {
+      background-color: #0d6efd;
+    }
+
+    .admin-nav .nav-link.active {
+      background-color: #6c757d;
+    }
+
+    .admin-nav .nav-link:hover {
+      color: #6c757d;
+    }
+
+    #admin {
+      display: none;
+    }
+
+    #customer {
+      display: none;
+    }
+
+    .section-active {
+      display: block !important;
+    }
+
+    .admin-section .btn-primary {
+      background-color: #6c757d;
+      border-color: #6c757d;
+    }
+
+    .admin-section .btn-primary:hover {
+      background-color: #5a6268;
+      border-color: #545b62;
+    }
+
+    .admin-section .text-primary {
+      color: #6c757d !important;
+    }
+  </style>
+  <link href="styles.css" rel="stylesheet">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="#">브랜드 코디네이터</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav nav-pills">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#" onclick="switchSection('customer'); return false;">고객 서비스</a>
-                    </li>
-                    <li class="nav-item admin-nav">
-                        <a class="nav-link" href="#" onclick="switchSection('admin'); return false;">운영자 서비스</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+  <div class="container">
+    <a class="navbar-brand" href="#">브랜드 코디네이터</a>
+    <button class="navbar-toggler" data-bs-target="#navbarNav" data-bs-toggle="collapse"
+            type="button">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav nav-pills">
+        <li class="nav-item">
+          <a class="nav-link active" href="#" onclick="switchSection('customer'); return false;">고객
+            서비스</a>
+        </li>
+        <li class="nav-item admin-nav">
+          <a class="nav-link" href="#" onclick="switchSection('admin'); return false;">운영자 서비스</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
 
-    <div class="container">
-        <!-- 고객 섹션 -->
-        <section id="customer" class="mb-5 section-active">
-            <div class="section-header">
-                <h2 class="mb-0">고객 서비스</h2>
-                <p class="text-muted mb-0">브랜드별 가격을 비교하고 최적의 조합을 찾아보세요</p>
-            </div>
-            
-            <!-- 카테고리별 최저가 조회 -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">카테고리별 최저가 브랜드</h5>
-                </div>
-                <div class="card-body">
-                    <button class="btn btn-primary" onclick="findLowestPricesByCategory()">조회하기</button>
-                    <div id="lowestPricesResult" class="mt-3"></div>
-                </div>
-            </div>
-
-            <!-- 최저가 브랜드 세트 조회 -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">최저가 브랜드 세트</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">카테고리 선택</label>
-                        <div class="category-checkboxes">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="TOP" id="topCheck" checked>
-                                <label class="form-check-label" for="topCheck">상의</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="OUTER" id="outerCheck" checked>
-                                <label class="form-check-label" for="outerCheck">아우터</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="PANTS" id="pantsCheck" checked>
-                                <label class="form-check-label" for="pantsCheck">하의</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="SNEAKERS" id="sneakersCheck" checked>
-                                <label class="form-check-label" for="sneakersCheck">스니커즈</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="BAG" id="bagCheck" checked>
-                                <label class="form-check-label" for="bagCheck">가방</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="HAT" id="hatCheck" checked>
-                                <label class="form-check-label" for="hatCheck">모자</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="SOCKS" id="socksCheck" checked>
-                                <label class="form-check-label" for="socksCheck">양말</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="ACCESSORY" id="accessoryCheck" checked>
-                                <label class="form-check-label" for="accessoryCheck">액세서리</label>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="findCheapestBrandTotal()">조회하기</button>
-                    <div id="cheapestBrandResult" class="mt-3"></div>
-                </div>
-            </div>
-
-            <!-- 카테고리별 가격 범위 조회 -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">카테고리별 가격 범위</h5>
-                </div>
-                <div class="card-body">
-                    <select class="form-select mb-3" id="categorySelect">
-                        <option value="TOP">상의</option>
-                        <option value="PANTS">하의</option>
-                        <option value="OUTER">아우터</option>
-                        <option value="SNEAKERS">스니커즈</option>
-                        <option value="BAG">가방</option>
-                        <option value="HAT">모자</option>
-                        <option value="SOCKS">양말</option>
-                        <option value="ACCESSORY">액세서리</option>
-                    </select>
-                    <button class="btn btn-primary" onclick="findPriceRangeByCategory()">조회하기</button>
-                    <div id="priceRangeResult" class="mt-3"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 운영자 섹션 -->
-        <section id="admin" class="mb-5 admin-section">
-            <div class="section-header">
-                <h2 class="mb-0">운영자 서비스</h2>
-                <p class="text-muted mb-0">브랜드와 상품을 관리하세요</p>
-            </div>
-
-            <!-- 브랜드 등록 -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">브랜드 등록</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <input type="text" class="form-control" id="brandName" placeholder="브랜드 이름">
-                    </div>
-                    <button class="btn btn-primary" onclick="registerBrand()">등록하기</button>
-                </div>
-            </div>
-
-            <!-- 상품 등록 -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">상품 등록</h5>
-                </div>
-                <div class="card-body">
-                    <form id="productForm" class="mb-3">
-                        <div class="mb-3">
-                            <input type="text" class="form-control" id="productBrand" placeholder="브랜드 이름">
-                        </div>
-                        <div class="mb-3">
-                            <select class="form-select" id="productCategory">
-                                <option value="TOP">상의</option>
-                                <option value="PANTS">하의</option>
-                                <option value="OUTER">아우터</option>
-                                <option value="SNEAKERS">스니커즈</option>
-                                <option value="BAG">가방</option>
-                                <option value="HAT">모자</option>
-                                <option value="SOCKS">양말</option>
-                                <option value="ACCESSORY">액세서리</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <input type="number" class="form-control" id="productPrice" placeholder="가격">
-                        </div>
-                        <button type="button" class="btn btn-primary" onclick="registerProduct()">상품 등록</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- 상품 목록 -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">전체 상품 목록</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <input type="text" class="form-control" id="brandFilter" placeholder="브랜드 검색">
-                        </div>
-                        <div class="col-md-4">
-                            <select class="form-select" id="categoryFilter">
-                                <option value="">모든 카테고리</option>
-                                <option value="TOP">상의</option>
-                                <option value="PANTS">하의</option>
-                                <option value="OUTER">아우터</option>
-                                <option value="SNEAKERS">스니커즈</option>
-                                <option value="BAG">가방</option>
-                                <option value="HAT">모자</option>
-                                <option value="SOCKS">양말</option>
-                                <option value="ACCESSORY">액세서리</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <button class="btn btn-primary w-100" onclick="loadProducts()">상품 목록 새로고침</button>
-                        </div>
-                    </div>
-                    <div id="productList" class="mt-3"></div>
-                </div>
-            </div>
-        </section>
+<div class="container">
+  <!-- 고객 섹션 -->
+  <section class="mb-5 section-active" id="customer">
+    <div class="section-header">
+      <h2 class="mb-0">고객 서비스</h2>
+      <p class="text-muted mb-0">브랜드별 가격을 비교하고 최적의 조합을 찾아보세요</p>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="app.js"></script>
+    <!-- 카테고리별 최저가 조회 -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">카테고리별 최저가 브랜드</h5>
+      </div>
+      <div class="card-body">
+        <button class="btn btn-primary" onclick="findLowestPricesByCategory()">조회하기</button>
+        <div class="mt-3" id="lowestPricesResult"></div>
+      </div>
+    </div>
+
+    <!-- 최저가 브랜드 세트 조회 -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">최저가 브랜드 세트</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label">카테고리 선택</label>
+          <div class="category-checkboxes">
+            <div class="form-check">
+              <input checked class="form-check-input" id="topCheck" type="checkbox" value="TOP">
+              <label class="form-check-label" for="topCheck">상의</label>
+            </div>
+            <div class="form-check">
+              <input checked class="form-check-input" id="outerCheck" type="checkbox" value="OUTER">
+              <label class="form-check-label" for="outerCheck">아우터</label>
+            </div>
+            <div class="form-check">
+              <input checked class="form-check-input" id="pantsCheck" type="checkbox" value="PANTS">
+              <label class="form-check-label" for="pantsCheck">하의</label>
+            </div>
+            <div class="form-check">
+              <input checked class="form-check-input" id="sneakersCheck" type="checkbox"
+                     value="SNEAKERS">
+              <label class="form-check-label" for="sneakersCheck">스니커즈</label>
+            </div>
+            <div class="form-check">
+              <input checked class="form-check-input" id="bagCheck" type="checkbox" value="BAG">
+              <label class="form-check-label" for="bagCheck">가방</label>
+            </div>
+            <div class="form-check">
+              <input checked class="form-check-input" id="hatCheck" type="checkbox" value="HAT">
+              <label class="form-check-label" for="hatCheck">모자</label>
+            </div>
+            <div class="form-check">
+              <input checked class="form-check-input" id="socksCheck" type="checkbox" value="SOCKS">
+              <label class="form-check-label" for="socksCheck">양말</label>
+            </div>
+            <div class="form-check">
+              <input checked class="form-check-input" id="accessoryCheck" type="checkbox"
+                     value="ACCESSORY">
+              <label class="form-check-label" for="accessoryCheck">액세서리</label>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="findCheapestBrandTotal()">조회하기</button>
+        <div class="mt-3" id="cheapestBrandResult"></div>
+      </div>
+    </div>
+
+    <!-- 카테고리별 가격 범위 조회 -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">카테고리별 가격 범위</h5>
+      </div>
+      <div class="card-body">
+        <select class="form-select mb-3" id="categorySelect">
+          <option value="TOP">상의</option>
+          <option value="PANTS">하의</option>
+          <option value="OUTER">아우터</option>
+          <option value="SNEAKERS">스니커즈</option>
+          <option value="BAG">가방</option>
+          <option value="HAT">모자</option>
+          <option value="SOCKS">양말</option>
+          <option value="ACCESSORY">액세서리</option>
+        </select>
+        <button class="btn btn-primary" onclick="findPriceRangeByCategory()">조회하기</button>
+        <div class="mt-3" id="priceRangeResult"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 운영자 섹션 -->
+  <section class="mb-5 admin-section" id="admin">
+    <div class="section-header">
+      <h2 class="mb-0">운영자 서비스</h2>
+      <p class="text-muted mb-0">브랜드와 상품을 관리하세요</p>
+    </div>
+
+    <!-- 브랜드 등록 -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">브랜드 등록</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <input class="form-control" id="brandName" placeholder="브랜드 이름" type="text">
+        </div>
+        <button class="btn btn-primary" onclick="registerBrand()">등록하기</button>
+      </div>
+    </div>
+
+    <!-- 상품 등록 -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">상품 등록</h5>
+      </div>
+      <div class="card-body">
+        <form class="mb-3" id="productForm">
+          <div class="mb-3">
+            <input class="form-control" id="productBrand" placeholder="브랜드 이름" type="text">
+          </div>
+          <div class="mb-3">
+            <select class="form-select" id="productCategory">
+              <option value="TOP">상의</option>
+              <option value="PANTS">하의</option>
+              <option value="OUTER">아우터</option>
+              <option value="SNEAKERS">스니커즈</option>
+              <option value="BAG">가방</option>
+              <option value="HAT">모자</option>
+              <option value="SOCKS">양말</option>
+              <option value="ACCESSORY">액세서리</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <input class="form-control" id="productPrice" placeholder="가격" type="number">
+          </div>
+          <button class="btn btn-primary" onclick="registerProduct()" type="button">상품 등록</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 상품 목록 -->
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">전체 상품 목록</h5>
+      </div>
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <input class="form-control" id="brandFilter" placeholder="브랜드 검색" type="text">
+          </div>
+          <div class="col-md-4">
+            <select class="form-select" id="categoryFilter">
+              <option value="">모든 카테고리</option>
+              <option value="TOP">상의</option>
+              <option value="PANTS">하의</option>
+              <option value="OUTER">아우터</option>
+              <option value="SNEAKERS">스니커즈</option>
+              <option value="BAG">가방</option>
+              <option value="HAT">모자</option>
+              <option value="SOCKS">양말</option>
+              <option value="ACCESSORY">액세서리</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <button class="btn btn-primary w-100" onclick="loadProducts()">상품 목록 새로고침</button>
+          </div>
+        </div>
+        <div class="mt-3" id="productList"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="app.js"></script>
 </body>
 </html> 

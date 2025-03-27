@@ -21,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AdminService {
+
     private final BrandRepository brandRepository;
     private final ProductRepository productRepository;
 
@@ -32,7 +33,7 @@ public class AdminService {
         if (brandRepository.existsByName(request.name())) {
             throw new IllegalArgumentException("이미 등록된 브랜드입니다: " + request.name());
         }
-        
+
         Brand brand = new Brand();
         brand.setName(request.name());
         return brandRepository.save(brand);
@@ -45,11 +46,12 @@ public class AdminService {
     public Brand updateBrand(Long brandId, BrandRequest request) {
         Brand brand = brandRepository.findById(brandId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 브랜드입니다: " + brandId));
-        
-        if (!brand.getName().equals(request.name()) && brandRepository.existsByName(request.name())) {
+
+        if (!brand.getName().equals(request.name()) && brandRepository.existsByName(
+                request.name())) {
             throw new IllegalArgumentException("이미 등록된 브랜드입니다: " + request.name());
         }
-        
+
         brand.setName(request.name());
         return brandRepository.save(brand);
     }
@@ -71,7 +73,7 @@ public class AdminService {
     @Transactional
     public Product registerProduct(ProductRequest request) {
         log.info("Registering product with request: {}", request);
-        
+
         log.debug("Finding brand by name: {}", request.brand());
         Brand brand = brandRepository.findByName(request.brand())
                 .orElseThrow(() -> {
@@ -79,26 +81,27 @@ public class AdminService {
                     return new IllegalArgumentException("브랜드를 찾을 수 없습니다: " + request.brand());
                 });
         log.debug("Found brand: {}", brand);
-        
+
         // Check for duplicate product
         log.debug("Checking for duplicate product...");
-        if (productRepository.existsByBrandAndCategoryAndPrice(brand, request.category(), request.price())) {
-            String errorMsg = String.format("이미 등록된 상품입니다: 브랜드=%s, 카테고리=%s, 가격=%d", 
-                request.brand(), request.category(), request.price());
+        if (productRepository.existsByBrandAndCategoryAndPrice(brand, request.category(),
+                request.price())) {
+            String errorMsg = String.format("이미 등록된 상품입니다: 브랜드=%s, 카테고리=%s, 가격=%d",
+                    request.brand(), request.category(), request.price());
             log.error(errorMsg);
             throw new IllegalArgumentException(errorMsg);
         }
-        
+
         log.debug("Creating new product...");
         Product product = new Product();
         product.setBrand(brand);
         product.setCategory(request.category());
         product.setPrice(request.price());
-        
+
         log.debug("Saving product: {}", product);
         Product savedProduct = productRepository.save(product);
         log.info("Successfully registered product: {}", savedProduct);
-        
+
         return savedProduct;
     }
 
@@ -108,15 +111,17 @@ public class AdminService {
     @Transactional
     public Product updateProduct(Long productId, ProductRequest request) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found with id: " + productId));
-        
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Product not found with id: " + productId));
+
         Brand brand = brandRepository.findByName(request.brand())
-                .orElseThrow(() -> new IllegalArgumentException("Brand not found with name: " + request.brand()));
-        
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Brand not found with name: " + request.brand()));
+
         product.setBrand(brand);
         product.setCategory(request.category());
         product.setPrice(request.price());
-        
+
         return productRepository.save(product);
     }
 

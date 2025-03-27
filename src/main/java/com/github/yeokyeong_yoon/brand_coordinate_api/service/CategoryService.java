@@ -19,12 +19,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CategoryService {
+
     private final ProductRepository productRepository;
-    
+
     public List<Category> getAllCategories() {
         return Arrays.asList(Category.values());
     }
-    
+
     public Category getCategoryByName(String name) {
         try {
             return Category.valueOf(name.toUpperCase());
@@ -41,28 +42,30 @@ public class CategoryService {
 
         // 최저가와 최고가 찾기
         final int minPrice = products.stream()
-            .mapToInt(Product::getPrice)
-            .min()
-            .orElseThrow(() -> new IllegalStateException("최저가를 찾을 수 없습니다."));
+                .mapToInt(Product::getPrice)
+                .min()
+                .orElseThrow(() -> new IllegalStateException("최저가를 찾을 수 없습니다."));
 
         final int maxPrice = products.stream()
-            .mapToInt(Product::getPrice)
-            .max()
-            .orElseThrow(() -> new IllegalStateException("최고가를 찾을 수 없습니다."));
+                .mapToInt(Product::getPrice)
+                .max()
+                .orElseThrow(() -> new IllegalStateException("최고가를 찾을 수 없습니다."));
 
         // 최저가 브랜드들 찾기
         var lowestPrices = products.stream()
-            .filter(p -> p.getPrice() == minPrice)
-            .map(p -> new CategoryPriceResponse.BrandPrice(p.getBrand().getName(), p.getPrice()))
-            .sorted(Comparator.comparing(CategoryPriceResponse.BrandPrice::brand))
-            .collect(Collectors.toList());
+                .filter(p -> p.getPrice() == minPrice)
+                .map(p -> new CategoryPriceResponse.BrandPrice(p.getBrand().getName(),
+                        p.getPrice()))
+                .sorted(Comparator.comparing(CategoryPriceResponse.BrandPrice::brand))
+                .collect(Collectors.toList());
 
         // 최고가 브랜드들 찾기
         var highestPrices = products.stream()
-            .filter(p -> p.getPrice() == maxPrice)
-            .map(p -> new CategoryPriceResponse.BrandPrice(p.getBrand().getName(), p.getPrice()))
-            .sorted(Comparator.comparing(CategoryPriceResponse.BrandPrice::brand))
-            .collect(Collectors.toList());
+                .filter(p -> p.getPrice() == maxPrice)
+                .map(p -> new CategoryPriceResponse.BrandPrice(p.getBrand().getName(),
+                        p.getPrice()))
+                .sorted(Comparator.comparing(CategoryPriceResponse.BrandPrice::brand))
+                .collect(Collectors.toList());
 
         return new CategoryPriceResponse(category.name(), lowestPrices, highestPrices);
     }

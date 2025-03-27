@@ -138,7 +138,7 @@ class AdminServiceTest {
     void registerProduct_ShouldCreateNewProduct() {
         // Given
         ProductRequest request = new ProductRequest("A", Category.SNEAKERS, 30000);
-        
+
         Product expectedProduct = new Product();
         expectedProduct.setId(1L);
         expectedProduct.setBrand(brandA);

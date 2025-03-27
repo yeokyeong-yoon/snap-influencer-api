@@ -19,13 +19,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BrandService {
+
     private final BrandRepository brandRepository;
     private final ProductRepository productRepository;
-    
+
     public List<Brand> getAllBrands() {
         return brandRepository.findAll();
     }
-    
+
     @Transactional
     public Brand registerBrand(String name) {
         if (brandRepository.existsByName(name)) {
@@ -35,12 +36,12 @@ public class BrandService {
         brand.setName(name);
         return brandRepository.save(brand);
     }
-    
+
     public Brand getBrandByName(String name) {
         return brandRepository.findByName(name)
-            .orElseThrow(() -> new IllegalArgumentException("브랜드를 찾을 수 없습니다: " + name));
+                .orElseThrow(() -> new IllegalArgumentException("브랜드를 찾을 수 없습니다: " + name));
     }
-    
+
     @Transactional
     public void deleteBrand(Long id) {
         if (!brandRepository.existsById(id)) {
@@ -64,7 +65,7 @@ public class BrandService {
         Map<Brand, Map<Category, Integer>> brandPrices = new HashMap<>();
         for (Product product : allProducts) {
             brandPrices.computeIfAbsent(product.getBrand(), k -> new HashMap<>())
-                .put(product.getCategory(), product.getPrice());
+                    .put(product.getCategory(), product.getPrice());
         }
 
         // 3. 선택된 카테고리의 상품을 모두 가진 브랜드만 필터링하고 총액 계산
@@ -82,17 +83,17 @@ public class BrandService {
                 for (Category category : categories) {
                     int price = prices.get(category);
                     categoryPrices.add(new CheapestBrandResponse.CategoryPrice(
-                        category.name(),
-                        price
+                            category.name(),
+                            price
                     ));
                     total += price;
                 }
 
                 // 브랜드 정보 추가
                 brandTotals.add(new CheapestBrandResponse.BrandTotal(
-                    brand.getName(),
-                    categoryPrices,
-                    total
+                        brand.getName(),
+                        categoryPrices,
+                        total
                 ));
             }
         }
@@ -107,8 +108,8 @@ public class BrandService {
         // 5. 최저가 브랜드들만 선택 (동일한 가격이 있을 수 있음)
         int lowestTotal = brandTotals.get(0).total();
         List<CheapestBrandResponse.BrandTotal> cheapestBrands = brandTotals.stream()
-            .filter(bt -> bt.total() == lowestTotal)
-            .collect(Collectors.toList());
+                .filter(bt -> bt.total() == lowestTotal)
+                .collect(Collectors.toList());
 
         return new CheapestBrandResponse(cheapestBrands);
     }

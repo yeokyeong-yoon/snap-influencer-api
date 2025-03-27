@@ -31,30 +31,31 @@ public class ProductController {
             log.debug("Calling productService.findLowestPricesByCategory()");
             var result = productService.findLowestPricesByCategory();
             log.debug("Received response from service: {}", result);
-            
+
             Map<String, Object> response = Map.of(
-                "success", true,
-                "data", result
+                    "success", true,
+                    "data", result
             );
-            
+
             log.info("Successfully retrieved lowest prices. Returning response: {}", response);
             return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(response);
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(response);
         } catch (Exception e) {
             log.error("Failed to get lowest prices", e);
             Map<String, Object> error = Map.of(
-                "success", false,
-                "message", e.getMessage()
+                    "success", false,
+                    "message", e.getMessage()
             );
             return ResponseEntity.badRequest()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(error);
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(error);
         }
     }
 
     @PostMapping("/cheapest-brand")
-    public ResponseEntity<Map<String, Object>> getCheapestBrandTotal(@RequestBody Map<String, List<Category>> request) {
+    public ResponseEntity<Map<String, Object>> getCheapestBrandTotal(
+            @RequestBody Map<String, List<Category>> request) {
         log.info("Received request to get cheapest brand total. Request body: {}", request);
         try {
             List<Category> categories = request.get("categories");
@@ -62,58 +63,62 @@ public class ProductController {
                 log.warn("No categories provided in request");
                 throw new IllegalArgumentException("Categories list cannot be empty");
             }
-            
-            log.debug("Calling productService.findCheapestBrandTotal() with categories: {}", categories);
+
+            log.debug("Calling productService.findCheapestBrandTotal() with categories: {}",
+                    categories);
             var result = productService.findCheapestBrandTotal(categories);
             log.debug("Received response from service: {}", result);
-            
+
             Map<String, Object> response = Map.of(
-                "success", true,
-                "data", result
+                    "success", true,
+                    "data", result
             );
-            
-            log.info("Successfully retrieved cheapest brand total. Returning response: {}", response);
+
+            log.info("Successfully retrieved cheapest brand total. Returning response: {}",
+                    response);
             return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(response);
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(response);
         } catch (Exception e) {
             log.error("Failed to get cheapest brand total", e);
             Map<String, Object> error = Map.of(
-                "success", false,
-                "message", e.getMessage()
+                    "success", false,
+                    "message", e.getMessage()
             );
             return ResponseEntity.badRequest()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(error);
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(error);
         }
     }
 
     @GetMapping("/categories/{category}/price-range")
-    public ResponseEntity<Map<String, Object>> getPriceRangeByCategory(@PathVariable Category category) {
+    public ResponseEntity<Map<String, Object>> getPriceRangeByCategory(
+            @PathVariable Category category) {
         log.info("Received request to get price range for category: {}", category);
         try {
-            log.debug("Calling productService.findPriceRangeByCategory() with category: {}", category);
+            log.debug("Calling productService.findPriceRangeByCategory() with category: {}",
+                    category);
             var result = productService.findPriceRangeByCategory(category);
             log.debug("Received response from service: {}", result);
-            
+
             Map<String, Object> response = Map.of(
-                "success", true,
-                "data", result
+                    "success", true,
+                    "data", result
             );
-            
+
             log.info("Successfully retrieved price range. Returning response: {}", response);
             return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(response);
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(response);
         } catch (Exception e) {
             log.error("Failed to get price range", e);
             Map<String, Object> error = Map.of(
-                "success", false,
-                "message", e.getMessage()
+                    "success", false,
+                    "message", e.getMessage()
             );
             return ResponseEntity.badRequest()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(error);
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(error);
         }
     }
 } 
