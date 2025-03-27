@@ -6,9 +6,10 @@ import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CategoryLowestPriceRes
 import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CategoryPriceResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.repository.ProductRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -20,6 +21,7 @@ import java.util.List;
  * 3. @Transactional: 데이터베이스 작업의 일관성을 보장합니다.
  */
 @Service
+@Transactional(readOnly = true)
 public class CategoryService {
 
     private final ProductRepository productRepository;
@@ -32,39 +34,47 @@ public class CategoryService {
      * 구현 1) 카테고리별 최저가격 브랜드와 상품 가격, 총액을 조회
      */
     public CategoryLowestPriceResponse findLowestPricesByCategory() {
-        List<CategoryLowestPriceResponse.CategoryPrice> categories = new ArrayList<>();
+        List<Category> categories = Arrays.asList(Category.values());
+        List<CategoryLowestPriceResponse.CategoryPrice> categoryPrices = new ArrayList<>();
         int totalPrice = 0;
 
-        for (Category category : Category.values()) {
+        for (Category category : categories) {
             List<Product> products = productRepository.findByCategory(category);
             if (products.isEmpty()) {
                 throw new IllegalArgumentException("해당 카테고리의 상품이 없습니다: " + category);
             }
 
             // 최저가 찾기
-            int lowestPrice = products.stream()
-                    .mapToInt(Product::getPrice)
-                    .min()
-                    .orElseThrow();
+            int minPrice = Integer.MAX_VALUE;
+            for (Product product : products) {
+                minPrice = Math.min(minPrice, product.getPrice());
+            }
 
-            // 최저가인 브랜드들 찾기
-            List<CategoryLowestPriceResponse.CategoryPrice.BrandPrice> brandPrices = products.stream()
-                    .filter(p -> p.getPrice() == lowestPrice)
-                    .map(p -> new CategoryLowestPriceResponse.CategoryPrice.BrandPrice(
-                            p.getBrand().getName(),
-                            p.getPrice()
-                    ))
-                    .toList();
+            // 최저가 브랜드들 찾기
+            List<CategoryLowestPriceResponse.CategoryPrice.BrandPrice> brandPrices = new ArrayList<>();
+            for (Product product : products) {
+                if (product.getPrice() == minPrice) {
+                    brandPrices.add(new CategoryLowestPriceResponse.CategoryPrice.BrandPrice(
+                        product.getBrand().getName(),
+                        product.getPrice()
+                    ));
+                }
+            }
 
-            categories.add(new CategoryLowestPriceResponse.CategoryPrice(
-                    category.name(),
-                    brandPrices
+            // 브랜드 이름으로 정렬
+            brandPrices.sort((a, b) -> a.brand().compareTo(b.brand()));
+
+            categoryPrices.add(new CategoryLowestPriceResponse.CategoryPrice(
+                category.name(),
+                brandPrices
             ));
-
-            totalPrice += lowestPrice;
+            totalPrice += minPrice;
         }
 
-        return new CategoryLowestPriceResponse(categories, totalPrice);
+        // 카테고리 이름으로 정렬
+        categoryPrices.sort((a, b) -> a.category().compareTo(b.category()));
+
+        return new CategoryLowestPriceResponse(categoryPrices, totalPrice);
     }
 
     /**
@@ -77,38 +87,40 @@ public class CategoryService {
         }
 
         // 최저가와 최고가 찾기
-        int lowestPrice = products.stream()
-                .mapToInt(Product::getPrice)
-                .min()
-                .orElseThrow();
+        int minPrice = Integer.MAX_VALUE;
+        int maxPrice = Integer.MIN_VALUE;
+        for (Product product : products) {
+            minPrice = Math.min(minPrice, product.getPrice());
+            maxPrice = Math.max(maxPrice, product.getPrice());
+        }
 
-        int highestPrice = products.stream()
-                .mapToInt(Product::getPrice)
-                .max()
-                .orElseThrow();
+        // 최저가와 최고가 브랜드들 찾기
+        List<CategoryPriceResponse.BrandPrice> lowestPrices = new ArrayList<>();
+        List<CategoryPriceResponse.BrandPrice> highestPrices = new ArrayList<>();
 
-        // 최저가인 브랜드들 찾기
-        List<CategoryPriceResponse.BrandPrice> lowestPrices = products.stream()
-                .filter(p -> p.getPrice() == lowestPrice)
-                .map(p -> new CategoryPriceResponse.BrandPrice(
-                        p.getBrand().getName(),
-                        p.getPrice()
-                ))
-                .toList();
+        for (Product product : products) {
+            if (product.getPrice() == minPrice) {
+                lowestPrices.add(new CategoryPriceResponse.BrandPrice(
+                    product.getBrand().getName(),
+                    product.getPrice()
+                ));
+            }
+            if (product.getPrice() == maxPrice) {
+                highestPrices.add(new CategoryPriceResponse.BrandPrice(
+                    product.getBrand().getName(),
+                    product.getPrice()
+                ));
+            }
+        }
 
-        // 최고가인 브랜드들 찾기
-        List<CategoryPriceResponse.BrandPrice> highestPrices = products.stream()
-                .filter(p -> p.getPrice() == highestPrice)
-                .map(p -> new CategoryPriceResponse.BrandPrice(
-                        p.getBrand().getName(),
-                        p.getPrice()
-                ))
-                .toList();
+        // 브랜드 이름으로 정렬
+        lowestPrices.sort((a, b) -> a.brand().compareTo(b.brand()));
+        highestPrices.sort((a, b) -> a.brand().compareTo(b.brand()));
 
         return new CategoryPriceResponse(
-                category.name(),
-                lowestPrices,
-                highestPrices
+            category.name(),
+            lowestPrices,
+            highestPrices
         );
     }
 } 

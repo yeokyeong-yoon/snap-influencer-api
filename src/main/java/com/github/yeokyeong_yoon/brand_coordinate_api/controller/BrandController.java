@@ -5,7 +5,6 @@ import com.github.yeokyeong_yoon.brand_coordinate_api.dto.BrandRequest;
 import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CheapestBrandResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.service.AdminService;
 import com.github.yeokyeong_yoon.brand_coordinate_api.service.BrandService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,12 +12,16 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/brands")
-@RequiredArgsConstructor
+@RequestMapping("/api/brands")
 public class BrandController {
 
     private final BrandService brandService;
     private final AdminService adminService;
+
+    public BrandController(BrandService brandService, AdminService adminService) {
+        this.brandService = brandService;
+        this.adminService = adminService;
+    }
 
     // Frontend 지원: 브랜드 목록 조회
     @GetMapping
