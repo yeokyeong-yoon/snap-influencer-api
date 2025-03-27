@@ -2,6 +2,90 @@
 
 브랜드별 상품 가격을 비교하고 최저가를 찾을 수 있는 API 서비스입니다.
 
+## 시스템 아키텍처
+
+```mermaid
+graph TD
+    Client[Client] --> |HTTP| Controller[Controllers]
+    Controller --> |Service Layer| Service[Services]
+    Service --> |Repository Layer| Repository[Repositories]
+    Repository --> |JPA| DB[(H2 Database)]
+    
+    subgraph Controllers
+        AC[AdminController]
+        PC[ProductController]
+    end
+    
+    subgraph Services
+        AS[AdminService]
+        PS[ProductService]
+    end
+    
+    subgraph Repositories
+        BR[BrandRepository]
+        PR[ProductRepository]
+    end
+```
+
+## 클래스 다이어그램
+
+```mermaid
+classDiagram
+    class Brand {
+        -Long id
+        -String name
+        +getId()
+        +getName()
+        +setName()
+    }
+    
+    class Product {
+        -Long id
+        -Brand brand
+        -Category category
+        -int price
+        +getId()
+        +getBrand()
+        +getCategory()
+        +getPrice()
+    }
+    
+    class Category {
+        <<enumeration>>
+        TOP
+        OUTER
+        PANTS
+        SNEAKERS
+        BAG
+        HAT
+        SOCKS
+        ACCESSORY
+    }
+    
+    class AdminService {
+        +registerBrand()
+        +updateBrand()
+        +deleteBrand()
+        +registerProduct()
+        +updateProduct()
+        +deleteProduct()
+        +getAllBrands()
+        +getAllProducts()
+    }
+    
+    class ProductService {
+        +findLowestPricesByCategory()
+        +findCheapestBrandTotal()
+        +findPriceRangeByCategory()
+    }
+    
+    Product --> "1" Brand
+    Product --> "1" Category
+    AdminService --> BrandRepository
+    AdminService --> ProductRepository
+    ProductService --> ProductRepository
+```
+
 ## 기능
 
 ### 웹 인터페이스
@@ -12,23 +96,28 @@
 1. **카테고리별 최저가 브랜드 조회**
    - 각 카테고리별로 최저가 브랜드와 가격을 확인
    - 모든 카테고리 최저가의 총액 확인
+   ![카테고리별 최저가 브랜드 조회](docs/images/lowest-prices.png)
 
 2. **최저가 브랜드 세트 조회**
    - 모든 카테고리 상품을 한 브랜드에서 구매할 때 가장 저렴한 브랜드 확인
    - 카테고리별 가격과 총액 확인
+   ![최저가 브랜드 세트 조회](docs/images/cheapest-brand.png)
 
 3. **카테고리별 가격 범위 조회**
    - 특정 카테고리의 최저가/최고가 브랜드와 가격 확인
    - 동일 가격대의 여러 브랜드 동시 표시
+   ![카테고리별 가격 범위 조회](docs/images/price-range.png)
 
 #### 운영자 관리
 1. **브랜드 관리**
    - 새로운 브랜드 등록
+   ![브랜드 관리](docs/images/brand-management.png)
 
 2. **상품 관리**
    - 브랜드별 상품 등록
    - 상품 목록 조회
    - 상품 삭제
+   ![상품 관리](docs/images/product-management.png)
 
 ### REST API
 
