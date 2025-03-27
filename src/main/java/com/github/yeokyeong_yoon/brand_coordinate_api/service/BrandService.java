@@ -1,15 +1,16 @@
 package com.github.yeokyeong_yoon.brand_coordinate_api.service;
 
-import java.util.List;
-import java.util.Map;
+import java.text.NumberFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Brand;
+import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Category;
 import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Product;
-import com.github.yeokyeong_yoon.brand_coordinate_api.dto.PriceComparisonResponse;
+import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CheapestBrandResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.repository.BrandRepository;
 import com.github.yeokyeong_yoon.brand_coordinate_api.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,31 +29,69 @@ import lombok.RequiredArgsConstructor;
 public class BrandService {
     private final BrandRepository brandRepository;
     private final ProductRepository productRepository;
+    private final NumberFormat priceFormatter = NumberFormat.getNumberInstance(Locale.KOREA);
+
+    // Frontend 지원: 브랜드 목록 조회
+    public List<Brand> getAllBrands() {
+        return brandRepository.findAll();
+    }
 
     /**
-     * 모든 카테고리의 상품을 가진 브랜드 중에서, 
-     * 각 카테고리별 최저가 상품의 총합이 가장 작은 브랜드를 찾습니다.
+     * 구현 2) 단일 브랜드로 모든 카테고리 상품을 구매할 때 최저가격에 판매하는 브랜드와 카테고리의 상품가격, 총액을 조회
      */
-    public List<PriceComparisonResponse.ByBrand> getCheapestTotalBrand() {
+    public CheapestBrandResponse getCheapestTotalBrand() {
         List<Brand> brands = brandRepository.findAll();
-        Map<Brand, List<Product>> productsByBrand = brands.stream()
-                .collect(Collectors.toMap(
-                        brand -> brand,
-                        brand -> productRepository.findByBrand(brand)
-                ));
+        Brand cheapestBrand = null;
+        int minTotal = Integer.MAX_VALUE;
+        Map<Category, Product> cheapestProducts = new HashMap<>();
 
-        return productsByBrand.entrySet().stream()
-                .map(entry -> {
-                    Brand brand = entry.getKey();
-                    List<Product> products = entry.getValue();
-                    int totalPrice = products.stream()
-                            .mapToInt(Product::getPrice)
-                            .sum();
-                    return new PriceComparisonResponse.ByBrand(
-                            List.of(new PriceComparisonResponse.ProductPrice(brand.getName(), totalPrice)),
-                            products.size()
-                    );
-                })
-                .collect(Collectors.toList());
+        for (Brand brand : brands) {
+            List<Product> products = productRepository.findByBrand(brand);
+            Map<Category, Product> categoryProducts = new HashMap<>();
+            
+            // Check if brand has products in all categories
+            boolean hasAllCategories = true;
+            int total = 0;
+
+            for (Category category : Category.values()) {
+                Optional<Product> cheapest = products.stream()
+                    .filter(p -> p.getCategory() == category)
+                    .min(Comparator.comparingInt(Product::getPrice));
+                
+                if (cheapest.isEmpty()) {
+                    hasAllCategories = false;
+                    break;
+                }
+
+                categoryProducts.put(category, cheapest.get());
+                total += cheapest.get().getPrice();
+            }
+
+            if (hasAllCategories && total < minTotal) {
+                minTotal = total;
+                cheapestBrand = brand;
+                cheapestProducts = categoryProducts;
+            }
+        }
+
+        if (cheapestBrand == null) {
+            throw new IllegalStateException("No brand has products in all categories");
+        }
+
+        List<CheapestBrandResponse.CheapestBrand.CategoryPrice> categoryPrices = cheapestProducts.entrySet().stream()
+            .map(entry -> new CheapestBrandResponse.CheapestBrand.CategoryPrice(
+                entry.getKey().name(),
+                priceFormatter.format(entry.getValue().getPrice())
+            ))
+            .sorted(Comparator.comparing(CheapestBrandResponse.CheapestBrand.CategoryPrice::category))
+            .collect(Collectors.toList());
+
+        CheapestBrandResponse.CheapestBrand cheapest = new CheapestBrandResponse.CheapestBrand(
+            cheapestBrand.getName(),
+            categoryPrices,
+            priceFormatter.format(minTotal)
+        );
+
+        return new CheapestBrandResponse(cheapest);
     }
 }
