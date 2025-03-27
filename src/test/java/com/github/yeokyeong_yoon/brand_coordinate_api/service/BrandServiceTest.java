@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -523,5 +524,37 @@ class BrandServiceTest {
         // Then
         assertThat(response.cheapestBrands().get(0).brand()).isEqualTo("A");
         assertThat(response.cheapestBrands().get(0).total()).isEqualTo(91000);
+    }
+
+    @Test
+    void findCheapestBrandTotal_Success() {
+        // given
+        List<Category> categories = Arrays.asList(Category.TOP, Category.PANTS);
+        
+        // when
+        CheapestBrandResponse response = brandService.findCheapestBrandTotal(categories);
+        
+        // then
+        assertNotNull(response);
+    }
+
+    @Test
+    void findCheapestBrandTotal_EmptyCategories_ThrowsException() {
+        // given
+        List<Category> categories = List.of();
+        
+        // when & then
+        assertThrows(IllegalArgumentException.class,
+                () -> brandService.findCheapestBrandTotal(categories));
+    }
+
+    @Test
+    void findCheapestBrandTotal_NoProductsInCategory_ThrowsException() {
+        // given
+        List<Category> categories = Arrays.asList(Category.HAT, Category.SOCKS);
+        
+        // when & then
+        assertThrows(IllegalArgumentException.class,
+                () -> brandService.findCheapestBrandTotal(categories));
     }
 } 
