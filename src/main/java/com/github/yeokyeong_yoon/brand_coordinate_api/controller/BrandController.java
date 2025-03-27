@@ -29,7 +29,7 @@ public class BrandController {
     // 2. 고객은 단일 브랜드로 전체 카테고리 상품을 구매할 경우 최저가격인 브랜드와 총액이 얼마인지 확인할 수 있어야 합니다.
     @GetMapping("/cheapest")
     public CheapestBrandResponse getCheapestTotalBrand() {
-        return brandService.getCheapestTotalBrand();
+        return brandService.findCheapestBrandTotal();
     }
 
     // 4. 운영자는 새로운 브랜드를 등록할 수 있어야 합니다.

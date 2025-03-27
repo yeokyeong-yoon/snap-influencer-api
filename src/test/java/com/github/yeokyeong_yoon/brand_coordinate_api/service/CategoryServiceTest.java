@@ -3,8 +3,7 @@ package com.github.yeokyeong_yoon.brand_coordinate_api.service;
 import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Brand;
 import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Category;
 import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Product;
-import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CategoryPriceComparisonResponse;
-import com.github.yeokyeong_yoon.brand_coordinate_api.dto.ProductPriceDto;
+import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CategoryPriceResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -62,113 +62,79 @@ class CategoryServiceTest {
     }
 
     @Test
-    void comparePricesInCategory_ShouldReturnCheapestAndMostExpensiveProducts() {
+    void getPriceRangeByCategory_ShouldReturnCheapestAndMostExpensiveProducts() {
         // Given
-        Map<Brand, Integer> prices = Map.of(
-            brandA, 10000,
-            brandB, 15000,
-            brandC, 8000
-        );
+        Brand brandA = new Brand();
+        brandA.setName("A");
 
-        when(productRepository.findPriceRangeProductsByCategory(Category.TOP))
-                .thenReturn(createProductList(prices));
+        Product cheapTop = new Product();
+        cheapTop.setBrand(brandA);
+        cheapTop.setCategory(Category.TOP);
+        cheapTop.setPrice(5000);
+
+        Product expensiveTop = new Product();
+        expensiveTop.setBrand(brandA);
+        expensiveTop.setCategory(Category.TOP);
+        expensiveTop.setPrice(10000);
+
+        when(productRepository.findByCategory(Category.TOP))
+                .thenReturn(Arrays.asList(cheapTop, expensiveTop));
 
         // When
-        CategoryPriceComparisonResponse response = categoryService.comparePricesInCategory(Category.TOP);
+        CategoryPriceResponse response = categoryService.findPriceRangeByCategory(Category.TOP);
 
         // Then
-        assertThat(response.category()).isEqualTo("TOP");
-        assertThat(response.cheapestProducts()).hasSize(1);
-        assertThat(response.mostExpensiveProducts()).hasSize(1);
-
-        ProductPriceDto cheapest = response.cheapestProducts().get(0);
-        assertThat(cheapest.brand()).isEqualTo("C");
-        assertThat(cheapest.price()).isEqualTo(8000);
-
-        ProductPriceDto mostExpensive = response.mostExpensiveProducts().get(0);
-        assertThat(mostExpensive.brand()).isEqualTo("B");
-        assertThat(mostExpensive.price()).isEqualTo(15000);
+        assertThat(response.category()).isEqualTo(Category.TOP.name());
+        assertThat(response.lowestPrices()).hasSize(1);
+        assertThat(response.lowestPrices().get(0).brand()).isEqualTo("A");
+        assertThat(response.lowestPrices().get(0).price()).isEqualTo(5000);
+        assertThat(response.highestPrices()).hasSize(1);
+        assertThat(response.highestPrices().get(0).brand()).isEqualTo("A");
+        assertThat(response.highestPrices().get(0).price()).isEqualTo(10000);
     }
 
     @Test
-    void comparePricesInCategory_WhenProductsHaveDifferentPrices_ShouldReturnCheapestAndMostExpensive() {
+    void getPriceRangeByCategory_WhenProductsHaveDifferentPrices_ShouldReturnCheapestAndMostExpensive() {
         // Given
-        Map<Brand, Integer> prices = Map.of(
-            brandA, 10000,
-            brandB, 15000,
-            brandC, 8000
-        );
+        Brand brandA = new Brand();
+        brandA.setName("A");
+        Brand brandB = new Brand();
+        brandB.setName("B");
 
-        when(productRepository.findPriceRangeProductsByCategory(Category.TOP))
-                .thenReturn(createProductList(prices));
+        Product topA = new Product();
+        topA.setBrand(brandA);
+        topA.setCategory(Category.TOP);
+        topA.setPrice(5000);
+
+        Product topB = new Product();
+        topB.setBrand(brandB);
+        topB.setCategory(Category.TOP);
+        topB.setPrice(10000);
+
+        when(productRepository.findByCategory(Category.TOP))
+                .thenReturn(Arrays.asList(topA, topB));
 
         // When
-        CategoryPriceComparisonResponse response = categoryService.comparePricesInCategory(Category.TOP);
+        CategoryPriceResponse response = categoryService.findPriceRangeByCategory(Category.TOP);
 
         // Then
-        assertThat(response.category()).isEqualTo("TOP");
-        
-        // Check cheapest products
-        List<ProductPriceDto> cheapestProducts = response.cheapestProducts();
-        assertThat(cheapestProducts).hasSize(1);
-        assertThat(cheapestProducts.get(0).brand()).isEqualTo("C");
-        assertThat(cheapestProducts.get(0).price()).isEqualTo(8000);
-
-        // Check most expensive products
-        List<ProductPriceDto> mostExpensiveProducts = response.mostExpensiveProducts();
-        assertThat(mostExpensiveProducts).hasSize(1);
-        assertThat(mostExpensiveProducts.get(0).brand()).isEqualTo("B");
-        assertThat(mostExpensiveProducts.get(0).price()).isEqualTo(15000);
+        assertThat(response.category()).isEqualTo(Category.TOP.name());
+        assertThat(response.lowestPrices()).hasSize(1);
+        assertThat(response.lowestPrices().get(0).brand()).isEqualTo("A");
+        assertThat(response.lowestPrices().get(0).price()).isEqualTo(5000);
+        assertThat(response.highestPrices()).hasSize(1);
+        assertThat(response.highestPrices().get(0).brand()).isEqualTo("B");
+        assertThat(response.highestPrices().get(0).price()).isEqualTo(10000);
     }
 
     @Test
-    void comparePricesInCategory_WhenAllProductsHaveSamePrice_ShouldReturnAll() {
+    void getPriceRangeByCategory_WhenNoProducts_ShouldThrowException() {
         // Given
-        Map<Brand, Integer> prices = Map.of(
-            brandA, 10000,
-            brandB, 10000,
-            brandC, 10000
-        );
-
-        when(productRepository.findPriceRangeProductsByCategory(Category.TOP))
-                .thenReturn(createProductList(prices));
-
-        // When
-        CategoryPriceComparisonResponse response = categoryService.comparePricesInCategory(Category.TOP);
-
-        // Then
-        assertThat(response.category()).isEqualTo("TOP");
-        
-        // Check that all products are in both cheapest and most expensive lists
-        List<ProductPriceDto> cheapestProducts = response.cheapestProducts();
-        List<ProductPriceDto> mostExpensiveProducts = response.mostExpensiveProducts();
-        
-        assertThat(cheapestProducts).hasSize(3);
-        assertThat(mostExpensiveProducts).hasSize(3);
-        
-        // Verify all products have the same price
-        assertThat(cheapestProducts).extracting(ProductPriceDto::price)
-                .containsOnly(10000);
-        assertThat(mostExpensiveProducts).extracting(ProductPriceDto::price)
-                .containsOnly(10000);
-        
-        // Verify all brands are included
-        assertThat(cheapestProducts).extracting(ProductPriceDto::brand)
-                .containsExactlyInAnyOrder("A", "B", "C");
-        assertThat(mostExpensiveProducts).extracting(ProductPriceDto::brand)
-                .containsExactlyInAnyOrder("A", "B", "C");
-    }
-
-    @Test
-    void comparePricesInCategory_WhenNoProducts_ShouldThrowException() {
-        // Given
-        when(productRepository.findPriceRangeProductsByCategory(Category.TOP))
+        when(productRepository.findByCategory(Category.TOP))
                 .thenReturn(List.of());
 
         // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> categoryService.comparePricesInCategory(Category.TOP));
-
-        assertThat(exception.getMessage()).isEqualTo("No products found for category: TOP");
+        assertThrows(IllegalArgumentException.class,
+                () -> categoryService.findPriceRangeByCategory(Category.TOP));
     }
 } 

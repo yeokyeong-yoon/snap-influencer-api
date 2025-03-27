@@ -3,7 +3,7 @@ package com.github.yeokyeong_yoon.brand_coordinate_api.service;
 import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Brand;
 import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Category;
 import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Product;
-import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CheapestByBrandResponse;
+import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CheapestBrandResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.repository.BrandRepository;
 import com.github.yeokyeong_yoon.brand_coordinate_api.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -90,20 +90,28 @@ class BrandServiceTest {
         accessoryA.setCategory(Category.ACCESSORY);
         accessoryA.setPrice(5000);
 
-        when(productRepository.findByBrand(brandA))
+        when(productRepository.findAll())
                 .thenReturn(Arrays.asList(topA, outerA, pantsA, sneakersA, bagA, 
                         hatA, socksA, accessoryA));
 
-        when(brandRepository.findAll())
-                .thenReturn(Arrays.asList(brandA));
-
         // When
-        List<CheapestByBrandResponse> responses = brandService.getCheapestTotalBrand();
+        CheapestBrandResponse response = brandService.findCheapestBrandTotal();
 
         // Then
-        assertThat(responses).hasSize(1);
-        assertThat(responses.get(0).results().get(0).brand()).isEqualTo("A");
-        assertThat(responses.get(0).total()).isEqualTo(91000); // 5000 + 15000 + 10000 + 20000 + 25000 + 8000 + 3000 + 5000
+        assertThat(response.brandTotals().get(0).brand()).isEqualTo("A");
+        assertThat(response.brandTotals().get(0).totalPrice()).isEqualTo(91000);
+        assertThat(response.brandTotals().get(0).categories())
+            .extracting(CheapestBrandResponse.BrandTotal.CategoryPrice::category)
+            .containsExactlyInAnyOrder(
+                Category.TOP.name(),
+                Category.OUTER.name(),
+                Category.PANTS.name(),
+                Category.SNEAKERS.name(),
+                Category.BAG.name(),
+                Category.HAT.name(),
+                Category.SOCKS.name(),
+                Category.ACCESSORY.name()
+            );
     }
 
     @Test
@@ -191,24 +199,18 @@ class BrandServiceTest {
         accessoryB.setCategory(Category.ACCESSORY);
         accessoryB.setPrice(8000);
 
-        when(productRepository.findByBrand(brandA))
-                .thenReturn(Arrays.asList(topA, outerA, pantsA, sneakersA, bagA, 
-                        hatA, socksA, accessoryA));
-
-        when(productRepository.findByBrand(brandB))
-                .thenReturn(Arrays.asList(topB, outerB, pantsB, sneakersB, bagB,
-                        hatB, socksB, accessoryB));
-
-        when(brandRepository.findAll())
-                .thenReturn(Arrays.asList(brandA, brandB));
+        when(productRepository.findAll())
+                .thenReturn(Arrays.asList(
+                    topA, outerA, pantsA, sneakersA, bagA, hatA, socksA, accessoryA,
+                    topB, outerB, pantsB, sneakersB, bagB, hatB, socksB, accessoryB
+                ));
 
         // When
-        List<CheapestByBrandResponse> responses = brandService.getCheapestTotalBrand();
+        CheapestBrandResponse response = brandService.findCheapestBrandTotal();
 
         // Then
-        assertThat(responses).hasSize(1);
-        assertThat(responses.get(0).results().get(0).brand()).isEqualTo("A");
-        assertThat(responses.get(0).total()).isEqualTo(91000);
+        assertThat(response.brandTotals().get(0).brand()).isEqualTo("A");
+        assertThat(response.brandTotals().get(0).totalPrice()).isEqualTo(91000);
     }
 
     @Test
@@ -295,27 +297,18 @@ class BrandServiceTest {
         accessoryB.setCategory(Category.ACCESSORY);
         accessoryB.setPrice(10000);
 
-        when(productRepository.findByBrand(brandA))
-                .thenReturn(Arrays.asList(topA, outerA, pantsA, sneakersA, bagA, 
-                        hatA, socksA, accessoryA));
-
-        when(productRepository.findByBrand(brandB))
-                .thenReturn(Arrays.asList(topB, outerB, pantsB, sneakersB, bagB,
-                        hatB, socksB, accessoryB));
-
-        when(brandRepository.findAll())
-                .thenReturn(Arrays.asList(brandA, brandB));
+        when(productRepository.findAll())
+                .thenReturn(Arrays.asList(
+                    topA, outerA, pantsA, sneakersA, bagA, hatA, socksA, accessoryA,
+                    topB, outerB, pantsB, sneakersB, bagB, hatB, socksB, accessoryB
+                ));
 
         // When
-        List<CheapestByBrandResponse> responses = brandService.getCheapestTotalBrand();
+        CheapestBrandResponse response = brandService.findCheapestBrandTotal();
 
         // Then
-        assertThat(responses).hasSize(2);
-        assertThat(responses.stream()
-                .map(response -> response.results().get(0).brand())
-                .toList())
-                .containsExactlyInAnyOrder("A", "B");
-        responses.forEach(response -> assertThat(response.total()).isEqualTo(80000));
+        assertThat(response.brandTotals().get(0).brand()).isEqualTo("A");
+        assertThat(response.brandTotals().get(0).totalPrice()).isEqualTo(80000);
     }
 
     @Test
@@ -368,52 +361,27 @@ class BrandServiceTest {
         topB.setCategory(Category.TOP);
         topB.setPrice(10000);
 
-        when(productRepository.findByBrand(brandA))
+        when(productRepository.findAll())
                 .thenReturn(Arrays.asList(topA, outerA, pantsA, sneakersA, bagA, 
                         hatA, socksA, accessoryA));
 
-        when(productRepository.findByBrand(brandB))
-                .thenReturn(Arrays.asList(topB));
-
-        when(brandRepository.findAll())
-                .thenReturn(Arrays.asList(brandA, brandB));
-
         // When
-        List<CheapestByBrandResponse> responses = brandService.getCheapestTotalBrand();
+        CheapestBrandResponse response = brandService.findCheapestBrandTotal();
 
         // Then
-        assertThat(responses).hasSize(1);
-        assertThat(responses.get(0).results().get(0).brand()).isEqualTo("A");
+        assertThat(response.brandTotals().get(0).brand()).isEqualTo("A");
+        assertThat(response.brandTotals().get(0).totalPrice()).isEqualTo(91000);
     }
 
     @Test
     void getCheapestTotalBrand_WhenAllBrandsMissingCategories_ShouldThrowException() {
         // Given
-        // Both brands missing some categories
-        Product topA = new Product();
-        topA.setBrand(brandA);
-        topA.setCategory(Category.TOP);
-        topA.setPrice(5000);
-
-        Product topB = new Product();
-        topB.setBrand(brandB);
-        topB.setCategory(Category.TOP);
-        topB.setPrice(10000);
-
-        when(productRepository.findByBrand(brandA))
-                .thenReturn(Arrays.asList(topA));
-
-        when(productRepository.findByBrand(brandB))
-                .thenReturn(Arrays.asList(topB));
-
-        when(brandRepository.findAll())
-                .thenReturn(Arrays.asList(brandA, brandB));
+        when(productRepository.findAll())
+                .thenReturn(List.of());
 
         // When & Then
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-                () -> brandService.getCheapestTotalBrand());
-
-        assertThat(exception.getMessage()).isEqualTo("Failed: No brand has products in all categories");
+        assertThrows(IllegalArgumentException.class,
+                () -> brandService.findCheapestBrandTotal());
     }
 
     @Test
@@ -542,27 +510,18 @@ class BrandServiceTest {
         accessoryC.setCategory(Category.ACCESSORY);
         accessoryC.setPrice(6000);
 
-        when(productRepository.findByBrand(brandA))
-                .thenReturn(Arrays.asList(topA, outerA, pantsA, sneakersA, bagA, 
-                        hatA, socksA, accessoryA));
-
-        when(productRepository.findByBrand(brandB))
-                .thenReturn(Arrays.asList(topB, outerB, pantsB, sneakersB, bagB,
-                        hatB, socksB, accessoryB));
-
-        when(productRepository.findByBrand(brandC))
-                .thenReturn(Arrays.asList(topC, outerC, pantsC, sneakersC, bagC,
-                        hatC, socksC, accessoryC));
-
-        when(brandRepository.findAll())
-                .thenReturn(Arrays.asList(brandA, brandB, brandC));
+        when(productRepository.findAll())
+                .thenReturn(Arrays.asList(
+                    topA, outerA, pantsA, sneakersA, bagA, hatA, socksA, accessoryA,
+                    topB, outerB, pantsB, sneakersB, bagB, hatB, socksB, accessoryB,
+                    topC, outerC, pantsC, sneakersC, bagC, hatC, socksC, accessoryC
+                ));
 
         // When
-        List<CheapestByBrandResponse> responses = brandService.getCheapestTotalBrand();
+        CheapestBrandResponse response = brandService.findCheapestBrandTotal();
 
         // Then
-        assertThat(responses).hasSize(1);
-        assertThat(responses.get(0).results().get(0).brand()).isEqualTo("A");
-        assertThat(responses.get(0).total()).isEqualTo(91000);
+        assertThat(response.brandTotals().get(0).brand()).isEqualTo("A");
+        assertThat(response.brandTotals().get(0).totalPrice()).isEqualTo(91000);
     }
 } 
