@@ -1,129 +1,95 @@
-INSERT INTO
-    brand (name)
-VALUES
-    ('A'),
-    ('B'),
-    ('C'),
-    ('D'),
-    ('E'),
-    ('F'),
-    ('G'),
-    ('H'),
-    ('I');
+-- Insert brands
+INSERT INTO brand (name) VALUES 
+    ('A'), ('B'), ('C'), ('D'), ('E'), ('F'), ('G'), ('H'), ('I');
 
--- 브랜드 A
-INSERT INTO
-    product (category, price, brand_name)
-VALUES
-    ('TOP', 11200, 'A'),
-    ('OUTER', 5500, 'A'),
-    ('PANTS', 4200, 'A'),
-    ('SNEAKERS', 9000, 'A'),
-    ('BAG', 2000, 'A'),
-    ('HAT', 1700, 'A'),
-    ('SOCKS', 1800, 'A'),
-    ('ACCESSORY', 2300, 'A');
+-- Insert sample products for each brand and category
+INSERT INTO product (brand_id, category, price) VALUES
+    -- Brand A products
+    (1, 'TOP', 11200),
+    (1, 'PANTS', 5500),
+    (1, 'OUTER', 4200),
+    (1, 'SNEAKERS', 9000),
+    (1, 'BAG', 2000),
+    (1, 'HAT', 1700),
+    (1, 'SOCKS', 1800),
+    (1, 'ACCESSORY', 2300),
 
--- 브랜드 B
-INSERT INTO
-    product (category, price, brand_name)
-VALUES
-    ('TOP', 10500, 'B'),
-    ('OUTER', 5900, 'B'),
-    ('PANTS', 3800, 'B'),
-    ('SNEAKERS', 9100, 'B'),
-    ('BAG', 2100, 'B'),
-    ('HAT', 2000, 'B'),
-    ('SOCKS', 2000, 'B'),
-    ('ACCESSORY', 2200, 'B');
+    -- Brand B products
+    (2, 'TOP', 10500),
+    (2, 'PANTS', 5900),
+    (2, 'OUTER', 3800),
+    (2, 'SNEAKERS', 9100),
+    (2, 'BAG', 2100),
+    (2, 'HAT', 2000),
+    (2, 'SOCKS', 2000),
+    (2, 'ACCESSORY', 2200),
 
--- 브랜드 C
-INSERT INTO
-    product (category, price, brand_name)
-VALUES
-    ('TOP', 10000, 'C'),
-    ('OUTER', 6200, 'C'),
-    ('PANTS', 3300, 'C'),
-    ('SNEAKERS', 9200, 'C'),
-    ('BAG', 2200, 'C'),
-    ('HAT', 1900, 'C'),
-    ('SOCKS', 2200, 'C'),
-    ('ACCESSORY', 2100, 'C');
+    -- Brand C products
+    (3, 'TOP', 10000),
+    (3, 'PANTS', 6200),
+    (3, 'OUTER', 3300),
+    (3, 'SNEAKERS', 9200),
+    (3, 'BAG', 2200),
+    (3, 'HAT', 1900),
+    (3, 'SOCKS', 2200),
+    (3, 'ACCESSORY', 2100),
 
--- 브랜드 D
-INSERT INTO
-    product (category, price, brand_name)
-VALUES
-    ('TOP', 10100, 'D'),
-    ('OUTER', 5100, 'D'),
-    ('PANTS', 3000, 'D'),
-    ('SNEAKERS', 9500, 'D'),
-    ('BAG', 2500, 'D'),
-    ('HAT', 1500, 'D'),
-    ('SOCKS', 2400, 'D'),
-    ('ACCESSORY', 2000, 'D');
+    -- Brand D products
+    (4, 'TOP', 10100),
+    (4, 'PANTS', 5100),
+    (4, 'OUTER', 3000),
+    (4, 'SNEAKERS', 9500),
+    (4, 'BAG', 2500),
+    (4, 'HAT', 1500),
+    (4, 'SOCKS', 2400),
+    (4, 'ACCESSORY', 2000),
 
--- 브랜드 E
-INSERT INTO
-    product (category, price, brand_name)
-VALUES
-    ('TOP', 10700, 'E'),
-    ('OUTER', 5000, 'E'),
-    ('PANTS', 3800, 'E'),
-    ('SNEAKERS', 9900, 'E'),
-    ('BAG', 2300, 'E'),
-    ('HAT', 1800, 'E'),
-    ('SOCKS', 2100, 'E'),
-    ('ACCESSORY', 2100, 'E');
+    -- Brand E products
+    (5, 'TOP', 10700),
+    (5, 'PANTS', 5000),
+    (5, 'OUTER', 3800),
+    (5, 'SNEAKERS', 9900),
+    (5, 'BAG', 2300),
+    (5, 'HAT', 1800),
+    (5, 'SOCKS', 2100),
+    (5, 'ACCESSORY', 2100),
 
--- 브랜드 F
-INSERT INTO
-    product (category, price, brand_name)
-VALUES
-    ('TOP', 11200, 'F'),
-    ('OUTER', 7200, 'F'),
-    ('PANTS', 4000, 'F'),
-    ('SNEAKERS', 9300, 'F'),
-    ('BAG', 2100, 'F'),
-    ('HAT', 1600, 'F'),
-    ('SOCKS', 2300, 'F'),
-    ('ACCESSORY', 1900, 'F');
+    -- Brand F products
+    (6, 'TOP', 11200),
+    (6, 'PANTS', 7200),
+    (6, 'OUTER', 4000),
+    (6, 'SNEAKERS', 9300),
+    (6, 'BAG', 2100),
+    (6, 'HAT', 1600),
+    (6, 'SOCKS', 2300),
+    (6, 'ACCESSORY', 1900),
 
--- 브랜드 G 
-INSERT INTO
-    product (category, price, brand_name)
-VALUES
-    ('TOP', 10500, 'G'),
-    ('OUTER', 5800, 'G'),
-    ('PANTS', 3900, 'G'),
-    ('SNEAKERS', 9000, 'G'),
-    ('BAG', 2200, 'G'),
-    ('HAT', 1700, 'G'),
-    ('SOCKS', 2100, 'G'),
-    ('ACCESSORY', 2000, 'G');
+    -- Brand G products
+    (7, 'TOP', 10500),
+    (7, 'PANTS', 5800),
+    (7, 'OUTER', 3900),
+    (7, 'SNEAKERS', 9000),
+    (7, 'BAG', 2200),
+    (7, 'HAT', 1700),
+    (7, 'SOCKS', 2100),
+    (7, 'ACCESSORY', 2000),
 
--- 브랜드 H
-INSERT INTO
-    product (category, price, brand_name)
-VALUES
-    ('TOP', 10800, 'H'),
-    ('OUTER', 6300, 'H'),
-    ('PANTS', 3100, 'H'),
-    ('SNEAKERS', 9700, 'H'),
-    ('BAG', 2100, 'H'),
-    ('HAT', 1600, 'H'),
-    ('SOCKS', 2000, 'H'),
-    ('ACCESSORY', 2000, 'H');
+    -- Brand H products
+    (8, 'TOP', 10800),
+    (8, 'PANTS', 6300),
+    (8, 'OUTER', 3100),
+    (8, 'SNEAKERS', 9700),
+    (8, 'BAG', 2100),
+    (8, 'HAT', 1600),
+    (8, 'SOCKS', 2000),
+    (8, 'ACCESSORY', 2000),
 
--- 브랜드 I
-INSERT INTO
-    product (category, price, brand_name)
-VALUES
-    ('TOP', 11400, 'I'),
-    ('OUTER', 6700, 'I'),
-    ('PANTS', 3200, 'I'),
-    ('SNEAKERS', 9500, 'I'),
-    ('BAG', 2400, 'I'),
-    ('HAT', 1700, 'I'),
-    ('SOCKS', 1700, 'I'),
-    ('ACCESSORY', 2400, 'I');
+    -- Brand I products
+    (9, 'TOP', 11400),
+    (9, 'PANTS', 6700),
+    (9, 'OUTER', 3200),
+    (9, 'SNEAKERS', 9500),
+    (9, 'BAG', 2400),
+    (9, 'HAT', 1700),
+    (9, 'SOCKS', 1700),
+    (9, 'ACCESSORY', 2400);
