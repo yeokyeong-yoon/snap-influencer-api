@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Category;
 import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Product;
 import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CategoryLowestPriceResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CategoryPriceResponse;
-import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CheapestBrandResponse;
+import com.github.yeokyeong_yoon.brand_coordinate_api.dto.PriceRangeResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -81,72 +82,6 @@ public class ProductService {
     }
 
     /**
-     * 요구사항 2: 단일 브랜드로 전체 카테고리 구매시 최저가격 브랜드와 총액 조회
-     */
-    @Transactional(readOnly = true)
-    public CheapestBrandResponse findCheapestBrandTotal() {
-        Map<Brand, List<Product>> productsByBrand = productRepository.findAll().stream()
-            .collect(Collectors.groupingBy(Product::getBrand));
-
-        List<CheapestBrandResponse.BrandTotal> brandTotals = new ArrayList<>();
-        int lowestTotal = Integer.MAX_VALUE;
-
-        // 첫 번째 패스: 최저 총액 찾기
-        for (Map.Entry<Brand, List<Product>> entry : productsByBrand.entrySet()) {
-            List<Product> products = entry.getValue();
-            
-            // 모든 카테고리의 상품이 있는지 확인
-            if (products.size() != Category.values().length) {
-                continue;
-            }
-
-            int total = products.stream()
-                .mapToInt(Product::getPrice)
-                .sum();
-
-            if (total < lowestTotal) {
-                lowestTotal = total;
-            }
-        }
-
-        // 두 번째 패스: 최저 총액과 일치하는 브랜드들 찾기
-        for (Map.Entry<Brand, List<Product>> entry : productsByBrand.entrySet()) {
-            Brand brand = entry.getKey();
-            List<Product> products = entry.getValue();
-            
-            if (products.size() != Category.values().length) {
-                continue;
-            }
-
-            int total = products.stream()
-                .mapToInt(Product::getPrice)
-                .sum();
-
-            if (total == lowestTotal) {
-                List<CheapestBrandResponse.BrandTotal.CategoryPrice> categoryPrices = products.stream()
-                    .map(p -> new CheapestBrandResponse.BrandTotal.CategoryPrice(
-                        p.getCategory().name(),
-                        p.getPrice()
-                    ))
-                    .sorted(Comparator.comparing(CheapestBrandResponse.BrandTotal.CategoryPrice::category))
-                    .collect(Collectors.toList());
-
-                brandTotals.add(new CheapestBrandResponse.BrandTotal(
-                    brand.getName(),
-                    total,
-                    categoryPrices
-                ));
-            }
-        }
-
-        if (brandTotals.isEmpty()) {
-            throw new IllegalStateException("모든 카테고리의 상품을 보유한 브랜드가 없습니다.");
-        }
-
-        return new CheapestBrandResponse(brandTotals);
-    }
-
-    /**
      * 요구사항 3: 특정 카테고리의 최저가/최고가 브랜드와 가격 조회
      */
     public CategoryPriceResponse findPriceRangeByCategory(Category category) {
@@ -191,5 +126,29 @@ public class ProductService {
             lowestPrices,
             highestPrices
         );
+    }
+
+    public List<PriceRangeResponse> findPriceRangeByCategory() {
+        List<Product> products = productRepository.findAll();
+        if (products == null) {
+            products = new ArrayList<>();
+        }
+        Map<Category, List<Product>> productsByCategory = products.stream()
+                .collect(Collectors.groupingBy(Product::getCategory));
+        List<PriceRangeResponse> priceRanges = new ArrayList<>();
+        for (Map.Entry<Category, List<Product>> entry : productsByCategory.entrySet()) {
+            Category category = entry.getKey();
+            List<Product> categoryProducts = entry.getValue();
+            double minPrice = categoryProducts.stream()
+                    .mapToDouble(Product::getPrice)
+                    .min()
+                    .orElse(0.0);
+            double maxPrice = categoryProducts.stream()
+                    .mapToDouble(Product::getPrice)
+                    .max()
+                    .orElse(0.0);
+            priceRanges.add(new PriceRangeResponse(category.name(), minPrice, maxPrice));
+        }
+        return priceRanges;
     }
 }
