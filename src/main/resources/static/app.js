@@ -35,45 +35,34 @@ function formatPrice(price) {
 
 // 카테고리별 최저가 브랜드 조회
 async function findLowestPricesByCategory() {
-    let response;
+    console.log('Fetching lowest prices by category...');
     try {
-        console.log('Frontend: Calling API - GET /products/lowest-prices');
-        response = await fetch(`${API_BASE_URL}/products/lowest-prices`, {
+        const response = await fetch(`${API_BASE_URL}/products/lowest-prices`, {
             method: 'GET',
             headers: {
-                'Accept': 'application/json',
                 'Content-Type': 'application/json'
             }
         });
-        console.log('Frontend: Received response status:', response.status);
-        console.log('Frontend: Response headers:', Object.fromEntries(response.headers.entries()));
+        console.log('Response status:', response.status);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const responseText = await response.text();
-        console.log('Frontend: Raw response:', responseText);
+        const data = await response.json();
+        console.log('Response data:', data);
         
-        if (!responseText) {
-            throw new Error('Empty response received');
+        if (!data.success || !data.data || !data.data.categories) {
+            throw new Error('Invalid response structure');
         }
-        
-        const data = JSON.parse(responseText);
-        console.log('Frontend: Parsed data:', data);
-        
-        if (!data || !data.success || !data.data || !data.data.categories) {
-            console.error('Frontend: Invalid data structure:', data);
-            throw new Error('Invalid response data structure');
-        }
-        
+
+        const result = data.data;
         let html = '<table class="result-table">';
         html += '<tr><th>카테고리</th><th>브랜드</th><th>가격</th></tr>';
         
-        data.data.categories.forEach(category => {
-            console.log('Frontend: Processing category:', category);
+        result.categories.forEach(category => {
             if (!category || !category.category || !category.brandPrices) {
-                console.error('Frontend: Invalid category data:', category);
+                console.error('Invalid category data:', category);
                 return;
             }
             const brands = category.brandPrices.map(bp => `${bp.brand} (${formatPrice(bp.price)})`).join(', ');
@@ -87,12 +76,16 @@ async function findLowestPricesByCategory() {
         });
         
         html += '</table>';
-        html += `<div class="total-price">총액: ${formatPrice(data.data.totalPrice)}</div>`;
+        html += `<div class="total-price">총액: ${formatPrice(result.totalPrice)}</div>`;
         
         document.getElementById('lowestPricesResult').innerHTML = html;
     } catch (error) {
-        console.error('Frontend: Error in findLowestPricesByCategory:', error);
-        handleError(error, response);
+        console.error('Error fetching lowest prices:', error);
+        document.getElementById('lowestPricesResult').innerHTML = `
+            <div class="error">
+                Error: ${error.message}
+            </div>
+        `;
     }
 }
 
@@ -114,11 +107,12 @@ async function findCheapestBrandTotal() {
         }
 
         console.log('Frontend: Selected categories:', selectedCategories);
-        console.log('Frontend: Making API call to /brands/cheapest');
+        console.log('Frontend: Making API call to /products/cheapest-brand');
         
-        const response = await fetch(`${API_BASE_URL}/brands/cheapest`, {
+        const response = await fetch(`${API_BASE_URL}/products/cheapest-brand`, {
             method: 'POST',
             headers: {
+                'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ categories: selectedCategories })
@@ -141,12 +135,12 @@ async function findCheapestBrandTotal() {
         const data = JSON.parse(responseText);
         console.log('Frontend: Parsed response:', data);
 
-        if (!data.success || !data.data || !data.data.cheapestBrands) {
+        if (!data.success || !data.data || !Array.isArray(data.data)) {
             console.error('Frontend: Invalid data structure:', data);
             throw new Error('Invalid response structure');
         }
 
-        const brandTotals = data.data.cheapestBrands;
+        const brandTotals = data.data;
         console.log('Frontend: Brand totals:', brandTotals);
 
         if (brandTotals.length === 0) {
@@ -182,6 +176,129 @@ async function findCheapestBrandTotal() {
                 Error: ${error.message}
             </div>
         `;
+    }
+}
+
+// 카테고리별 가격 범위 조회
+async function findPriceRangeByCategory(category) {
+    console.log('Fetching price range for category:', category);
+    try {
+        const response = await fetch(`${API_BASE_URL}/products/categories/${category}/price-range`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to fetch price range');
+        }
+        
+        return data.data;
+    } catch (error) {
+        console.error('Error fetching price range:', error);
+        throw error;
+    }
+}
+
+// 브랜드 등록
+async function registerBrand() {
+    const brandName = document.getElementById('brandName').value.trim();
+    if (!brandName) {
+        alert('브랜드 이름을 입력해주세요.');
+        return;
+    }
+
+    console.log('Registering brand:', brandName);
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/brands`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: brandName })
+        });
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to register brand');
+        }
+        
+        alert('브랜드가 성공적으로 등록되었습니다.');
+        document.getElementById('brandName').value = '';
+    } catch (error) {
+        console.error('Error registering brand:', error);
+        alert('브랜드 등록 실패: ' + error.message);
+    }
+}
+
+// 상품 등록
+async function registerProduct() {
+    const brand = document.getElementById('productBrand').value.trim();
+    const category = document.getElementById('productCategory').value;
+    const price = document.getElementById('productPrice').value;
+
+    if (!brand || !category || !price) {
+        alert('모든 필드를 입력해주세요.');
+        return;
+    }
+
+    if (isNaN(price) || parseInt(price) <= 0) {
+        alert('올바른 가격을 입력해주세요.');
+        return;
+    }
+
+    console.log('Registering product:', { brand, category, price });
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/products`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                brand: brand,
+                category: category.toUpperCase(),
+                price: parseInt(price)
+            })
+        });
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to register product');
+        }
+        
+        alert('상품이 성공적으로 등록되었습니다.');
+        document.getElementById('productBrand').value = '';
+        document.getElementById('productCategory').value = '';
+        document.getElementById('productPrice').value = '';
+        loadProducts();
+    } catch (error) {
+        console.error('Error registering product:', error);
+        alert('상품 등록 실패: ' + error.message);
     }
 }
 
@@ -265,192 +382,140 @@ async function findPriceRangeByCategory() {
     }
 }
 
-// 브랜드 등록
-async function registerBrand() {
-    let response;
-    try {
-        const brandName = document.getElementById('brandName').value;
-        if (!brandName) {
-            alert('브랜드 이름을 입력해주세요.');
-            return;
-        }
-
-        response = await fetch(`${API_BASE_URL}/admin/brands`, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name: brandName })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const responseText = await response.text();
-        console.log('Raw response:', responseText);
-        
-        if (!responseText) {
-            throw new Error('Empty response received');
-        }
-        
-        const data = JSON.parse(responseText);
-        
-        if (!data.success) {
-            throw new Error(data.message || '브랜드 등록에 실패했습니다.');
-        }
-
-        alert('브랜드가 성공적으로 등록되었습니다.');
-        document.getElementById('brandName').value = '';
-    } catch (error) {
-        console.error('Error in registerBrand:', error);
-        handleError(error, response);
-    }
-}
-
-// 상품 등록
-async function registerProduct() {
-    let response;
-    try {
-        const brand = document.getElementById('productBrand').value;
-        const category = document.getElementById('productCategory').value;
-        const price = parseInt(document.getElementById('productPrice').value);
-        
-        if (!brand || !category || !price) {
-            alert('모든 필드를 입력해주세요.');
-            return;
-        }
-        
-        response = await fetch(`${API_BASE_URL}/admin/products`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                brand: brand,
-                category: category,
-                price: price
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            alert('상품이 등록되었습니다.');
-            document.getElementById('productBrand').value = '';
-            document.getElementById('productPrice').value = '';
-            loadProducts();
-        } else {
-            throw new Error(data.message || '상품 등록에 실패했습니다.');
-        }
-    } catch (error) {
-        console.error('Error in registerProduct:', error);
-        alert(error.message);
-    }
-}
-
 // 상품 목록 조회
 async function loadProducts() {
-    let response;
+    console.log('Loading all products...');
     try {
-        console.log('Frontend: Calling API - GET /admin/products');
-        response = await fetch(`${API_BASE_URL}/admin/products`);
-        console.log('Frontend: Received response status:', response.status);
-        console.log('Frontend: Response headers:', Object.fromEntries(response.headers.entries()));
+        const response = await fetch(`${API_BASE_URL}/admin/products`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log('Response status:', response.status);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const responseText = await response.text();
-        console.log('Frontend: Raw response:', responseText);
+        const data = await response.json();
+        console.log('Response data:', data);
         
-        if (!responseText) {
-            throw new Error('Empty response received');
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to load products');
         }
         
-        const data = JSON.parse(responseText);
-        console.log('Frontend: Parsed data:', data);
-        
-        if (!data || !data.success || !data.data) {
-            console.error('Frontend: Invalid data structure:', data);
-            throw new Error('Invalid response data structure');
-        }
-
-        let products = data.data;
-        console.log('Frontend: Processing products:', products);
-        
-        // 필터 적용
-        const brandFilter = document.getElementById('brandFilter').value.toLowerCase();
-        const categoryFilter = document.getElementById('categoryFilter').value;
-        
-        if (brandFilter) {
-            products = products.filter(product => 
-                product.brand.toLowerCase().includes(brandFilter)
-            );
-        }
-        
-        if (categoryFilter) {
-            products = products.filter(product => 
-                product.category === categoryFilter
-            );
-        }
-        
-        if (products.length === 0) {
-            document.getElementById('productList').innerHTML = `
-                <div class="alert alert-info">
-                    검색 조건에 맞는 상품이 없습니다.
-                </div>
-            `;
-            return;
-        }
-        
-        let html = '<div class="list-group">';
-        products.forEach(product => {
-            html += `
-                <div class="product-item mb-2 p-3 border rounded">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>${product.brand}</strong> - ${product.category}
-                            <br>
-                            <span class="text-primary">${formatPrice(product.price)}</span>
-                        </div>
-                        <div>
-                            <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">삭제</button>
-                        </div>
-                    </div>
-                </div>`;
-        });
-        html += '</div>';
-        
-        document.getElementById('productList').innerHTML = html;
+        displayProducts(data.data);
+        return data.data;
     } catch (error) {
-        console.error('Frontend: Error in loadProducts:', error);
-        handleError(error, response);
+        console.error('Error loading products:', error);
+        document.getElementById('productList').innerHTML = `
+            <div class="error">
+                상품 목록을 불러오는데 실패했습니다: ${error.message}
+            </div>
+        `;
+        throw error;
     }
+}
+
+// 상품 목록 표시
+function displayProducts(products) {
+    console.log('Displaying products:', products);
+    const productList = document.getElementById('productList');
+    if (!productList) {
+        console.error('Product list element not found');
+        return;
+    }
+
+    if (!products || products.length === 0) {
+        productList.innerHTML = '<div class="no-data">등록된 상품이 없습니다.</div>';
+        return;
+    }
+
+    const brandFilter = document.getElementById('brandFilter').value.toLowerCase();
+    const categoryFilter = document.getElementById('categoryFilter').value;
+
+    // 필터링 적용
+    const filteredProducts = products.filter(product => {
+        const matchesBrand = !brandFilter || 
+            product.brand.name.toLowerCase().includes(brandFilter);
+        const matchesCategory = !categoryFilter || 
+            product.category === categoryFilter;
+        return matchesBrand && matchesCategory;
+    });
+
+    if (filteredProducts.length === 0) {
+        productList.innerHTML = '<div class="no-data">검색 조건에 맞는 상품이 없습니다.</div>';
+        return;
+    }
+
+    let html = '<table class="table">';
+    html += `
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>브랜드</th>
+                <th>카테고리</th>
+                <th>가격</th>
+                <th>작업</th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
+
+    filteredProducts.forEach(product => {
+        html += `
+            <tr>
+                <td>${product.id}</td>
+                <td>${product.brand.name}</td>
+                <td>${product.category}</td>
+                <td>${formatPrice(product.price)}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})">
+                        삭제
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+    productList.innerHTML = html;
 }
 
 // 상품 삭제
 async function deleteProduct(productId) {
+    console.log('Deleting product with ID:', productId);
+    if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) {
+        return;
+    }
+
     try {
-        if (!confirm('정말 이 상품을 삭제하시겠습니까?')) {
-            return;
-        }
-        
         const response = await fetch(`${API_BASE_URL}/admin/products/${productId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
+        console.log('Response status:', response.status);
         
-        if (response.ok) {
-            alert('상품이 삭제되었습니다.');
-            loadProducts();
-        } else {
-            const error = await response.json();
-            throw new Error(error.message);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
         }
+        
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to delete product');
+        }
+        
+        alert('상품이 성공적으로 삭제되었습니다.');
+        loadProducts(); // Refresh the product list
     } catch (error) {
-        handleError(error, response);
+        console.error('Error deleting product:', error);
+        alert('상품 삭제 실패: ' + error.message);
     }
 }
 

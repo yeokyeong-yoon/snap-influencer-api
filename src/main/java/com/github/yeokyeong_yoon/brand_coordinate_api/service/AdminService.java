@@ -70,23 +70,36 @@ public class AdminService {
      */
     @Transactional
     public Product registerProduct(ProductRequest request) {
+        log.info("Registering product with request: {}", request);
+        
+        log.debug("Finding brand by name: {}", request.brand());
         Brand brand = brandRepository.findByName(request.brand())
-                .orElseThrow(() -> new IllegalArgumentException("Brand not found with name: " + request.brand()));
+                .orElseThrow(() -> {
+                    log.error("Brand not found with name: {}", request.brand());
+                    return new IllegalArgumentException("브랜드를 찾을 수 없습니다: " + request.brand());
+                });
+        log.debug("Found brand: {}", brand);
         
         // Check for duplicate product
+        log.debug("Checking for duplicate product...");
         if (productRepository.existsByBrandAndCategoryAndPrice(brand, request.category(), request.price())) {
-            throw new IllegalArgumentException(
-                String.format("이미 등록된 상품입니다: 브랜드=%s, 카테고리=%s, 가격=%d", 
-                    request.brand(), request.category(), request.price())
-            );
+            String errorMsg = String.format("이미 등록된 상품입니다: 브랜드=%s, 카테고리=%s, 가격=%d", 
+                request.brand(), request.category(), request.price());
+            log.error(errorMsg);
+            throw new IllegalArgumentException(errorMsg);
         }
         
+        log.debug("Creating new product...");
         Product product = new Product();
         product.setBrand(brand);
         product.setCategory(request.category());
         product.setPrice(request.price());
         
-        return productRepository.save(product);
+        log.debug("Saving product: {}", product);
+        Product savedProduct = productRepository.save(product);
+        log.info("Successfully registered product: {}", savedProduct);
+        
+        return savedProduct;
     }
 
     /**

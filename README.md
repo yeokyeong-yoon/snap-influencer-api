@@ -28,6 +28,8 @@ flowchart TD
         subgraph SL[서비스 계층]
             AS[Admin Service]
             PS[Product Service]
+            BS[Brand Service]
+            CS[Category Service]
         end
 
         %% Repository Layer
@@ -56,7 +58,7 @@ flowchart TD
     classDef default fill:#fff,stroke:#333,stroke-width:2px
     classDef layer fill:#f8f9fa,stroke:#333,stroke-width:2px
     
-    class C,V,AC,PC,AS,PS,BR,PR,DB default
+    class C,V,AC,PC,AS,PS,BS,CS,BR,PR,DB default
     class CL,MVC,VL,CL2,SL,RL,DL layer
 ```
 
@@ -109,22 +111,46 @@ classDiagram
 
         class ProductRequest {
             <<dto>>
-            -String brandName
+            -String brand
             -Category category
             -int price
         }
 
         class CategoryLowestPriceResponse {
             <<dto>>
-            -Map~Category, BrandPrice~ lowestPrices
-            -int total
+            -List~CategoryPrice~ categories
+            -int totalPrice
+        }
+
+        class CategoryPrice {
+            <<dto>>
+            -String category
+            -List~BrandPrice~ brandPrices
+        }
+
+        class BrandPrice {
+            <<dto>>
+            -String brand
+            -int price
         }
 
         class CheapestBrandResponse {
             <<dto>>
-            -String brandName
-            -Map~Category, Integer~ prices
+            -List~BrandTotal~ cheapestBrands
+        }
+
+        class BrandTotal {
+            <<dto>>
+            -String brand
+            -List~CategoryPrice~ categoryPrices
             -int total
+        }
+
+        class CategoryPriceResponse {
+            <<dto>>
+            -String category
+            -List~BrandPrice~ lowestPrices
+            -List~BrandPrice~ highestPrices
         }
     }
 
@@ -168,7 +194,22 @@ classDiagram
             <<service>>
             -ProductRepository productRepository
             +findLowestPricesByCategory(): CategoryLowestPriceResponse
-            +findCheapestBrandTotal(): CheapestBrandResponse
+            +findCheapestBrandTotal(List~Category~): List~BrandTotal~
+            +findPriceRangeByCategory(Category): CategoryPriceResponse
+        }
+
+        class BrandService {
+            <<service>>
+            -BrandRepository brandRepository
+            +getAllBrands(): List~Brand~
+            +registerBrand(String): Brand
+            +getBrandByName(String): Brand
+            +deleteBrand(Long): void
+        }
+
+        class CategoryService {
+            <<service>>
+            -ProductRepository productRepository
             +findPriceRangeByCategory(Category): CategoryPriceResponse
         }
     }
@@ -185,6 +226,7 @@ classDiagram
             <<interface>>
             +findByCategory(Category): List~Product~
             +findByBrand(Brand): List~Product~
+            +findByCategoryIn(List~Category~): List~Product~
             +existsByBrandAndCategoryAndPrice(Brand, Category, int): boolean
         }
     }
@@ -205,12 +247,15 @@ classDiagram
     AdminService --> BrandRepository: uses >
     AdminService --> ProductRepository: uses >
     ProductService --> ProductRepository: uses >
+    BrandService --> BrandRepository: uses >
+    CategoryService --> ProductRepository: uses >
 
     %% DTO Relationships
     AdminController ..> BrandRequest: uses >
     AdminController ..> ProductRequest: uses >
     ProductController ..> CategoryLowestPriceResponse: returns >
     ProductController ..> CheapestBrandResponse: returns >
+    ProductController ..> CategoryPriceResponse: returns >
 ```
 
 ## 기능
@@ -226,7 +271,7 @@ classDiagram
    ![카테고리별 최저가 브랜드 조회](docs/images/lowest-prices.png)
 
 2. **최저가 브랜드 세트 조회**
-   - 모든 카테고리 상품을 한 브랜드에서 구매할 때 가장 저렴한 브랜드 확인
+   - 선택한 카테고리들의 상품을 한 브랜드에서 구매할 때 가장 저렴한 브랜드 확인
    - 카테고리별 가격과 총액 확인
    ![최저가 브랜드 세트 조회](docs/images/cheapest-brand.png)
 
@@ -238,116 +283,70 @@ classDiagram
 #### 운영자 관리
 1. **브랜드 관리**
    - 새로운 브랜드 등록
+   - 브랜드 정보 수정
+   - 브랜드 삭제
    ![브랜드 관리](docs/images/brand-management.png)
 
 2. **상품 관리**
    - 브랜드별 상품 등록
-   - 상품 목록 조회
+   - 상품 목록 조회 및 필터링
    - 상품 삭제
    ![상품 관리](docs/images/product-management.png)
 
 ### REST API
 
-다음 API 엔드포인트들을 통해 서비스를 이용할 수 있습니다:
-
-#### 고객용 API
+#### 고객 서비스 API
 - `GET /api/products/lowest-prices`: 카테고리별 최저가 브랜드 조회
-- `GET /api/products/cheapest-brand`: 최저가 브랜드 세트 조회
-- `GET /api/products/categories/{category}/price-range`: 카테고리별 가격 범위 조회
+- `POST /api/products/cheapest-brand`: 선택한 카테고리들의 최저가 브랜드 세트 조회
+- `GET /api/products/categories/{category}/price-range`: 특정 카테고리의 가격 범위 조회
 
-#### 운영자용 API
-- `POST /api/admin/brands`: 브랜드 등록
-- `PUT /api/admin/brands/{brandId}`: 브랜드 수정
-- `DELETE /api/admin/brands/{brandId}`: 브랜드 삭제
-- `POST /api/admin/products`: 상품 등록
-- `GET /api/admin/products`: 상품 목록 조회
+#### 운영자 API
+- `POST /api/admin/brands`: 새로운 브랜드 등록
+- `PUT /api/admin/brands/{id}`: 브랜드 정보 수정
+- `DELETE /api/admin/brands/{id}`: 브랜드 삭제
+- `POST /api/admin/products`: 새로운 상품 등록
+- `GET /api/admin/products`: 전체 상품 목록 조회
 - `DELETE /api/admin/products/{id}`: 상품 삭제
-
-### 예외 처리
-
-서비스는 다음과 같은 상황에서 예외를 발생시킵니다:
-
-#### 브랜드 관련 예외
-- 브랜드 등록 시 이미 존재하는 브랜드 이름인 경우
-  ```
-  이미 등록된 브랜드입니다: [브랜드명]
-  ```
-- 브랜드 수정 시 존재하지 않는 브랜드 ID인 경우
-  ```
-  존재하지 않는 브랜드입니다: [브랜드ID]
-  ```
-- 브랜드 수정 시 변경하려는 이름이 이미 존재하는 경우
-  ```
-  이미 등록된 브랜드입니다: [브랜드명]
-  ```
-
-#### 상품 관련 예외
-- 상품 등록 시 존재하지 않는 브랜드인 경우
-  ```
-  Brand not found with name: [브랜드명]
-  ```
-- 상품 등록 시 이미 동일한 브랜드, 카테고리, 가격의 상품이 존재하는 경우
-  ```
-  이미 등록된 상품입니다: 브랜드=[브랜드명], 카테고리=[카테고리], 가격=[가격]
-  ```
-- 상품 삭제 시 존재하지 않는 상품 ID인 경우
-  ```
-  Product not found with id: [상품ID]
-  ```
-
-#### 조회 관련 예외
-- 카테고리별 가격 범위 조회 시 해당 카테고리의 상품이 없는 경우
-  ```
-  해당 카테고리의 상품이 없습니다: [카테고리]
-  ```
-- 최저가 브랜드 세트 조회 시 카테고리를 선택하지 않은 경우
-  ```
-  카테고리를 선택해주세요
-  ```
-- 최저가 브랜드 세트 조회 시 선택한 카테고리의 상품이 없는 경우
-  ```
-  선택한 카테고리의 상품이 없습니다
-  ```
 
 ## 기술 스택
 
-- Backend: Spring Boot
-- Frontend: HTML, CSS, JavaScript
-- UI Framework: Bootstrap 5
-- Database: H2 (개발용 인메모리 DB)
+- **Backend**
+  - Spring Boot 3.x
+  - Spring Data JPA
+  - H2 Database
+  - Lombok
 
-## 시작하기
+- **Frontend**
+  - HTML5
+  - CSS3
+  - JavaScript (ES6+)
+  - Bootstrap 5
+
+## 실행 방법
 
 1. 프로젝트 클론
-   ```bash
-   git clone https://github.com/yeokyeong-yoon/brand-coordinate-api.git
-   ```
+```bash
+git clone https://github.com/yourusername/brand-coordinate-api.git
+cd brand-coordinate-api
+```
 
-2. 프로젝트 디렉토리로 이동
-   ```bash
-   cd brand-coordinate-api
-   ```
+2. 프로젝트 빌드
+```bash
+./gradlew build
+```
 
 3. 애플리케이션 실행
-   ```bash
-   ./gradlew bootRun
-   ```
-
-4. 웹 브라우저에서 접속
-   ```
-   http://localhost:8080
-   ```
-
-## 테스트
-
-테스트 실행:
 ```bash
+./gradlew bootRun
+```
+
+4. 브라우저에서 접속
+```
+http://localhost:8080
+```
+
+# Start of Selection
+5. Unit test 실행
+```
 ./gradlew test
 ```
-
-## API 문서
-
-API 문서는 Swagger UI를 통해 확인할 수 있습니다:
-```
-http://localhost:8080/swagger-ui.html
-``` 

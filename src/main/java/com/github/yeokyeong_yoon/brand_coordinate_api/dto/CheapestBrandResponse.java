@@ -2,13 +2,11 @@ package com.github.yeokyeong_yoon.brand_coordinate_api.dto;
 
 import java.util.List;
 
-public record CheapestBrandResponse(
-    List<BrandTotal> cheapestBrands
-) {
+public record CheapestBrandResponse(List<BrandTotal> cheapestBrands) {
     public record BrandTotal(
         String brand,
-        int total,
-        List<CategoryPrice> categoryPrices
+        List<CategoryPrice> categoryPrices,
+        int total
     ) {}
 
     public record CategoryPrice(

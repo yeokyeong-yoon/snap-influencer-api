@@ -3,6 +3,8 @@ package com.github.yeokyeong_yoon.brand_coordinate_api.service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,6 +19,7 @@ import com.github.yeokyeong_yoon.brand_coordinate_api.domain.Product;
 import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CategoryLowestPriceResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CategoryPriceResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.dto.PriceRangeResponse;
+import com.github.yeokyeong_yoon.brand_coordinate_api.dto.CheapestBrandResponse;
 import com.github.yeokyeong_yoon.brand_coordinate_api.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -165,5 +168,75 @@ public class ProductService {
             priceRanges.add(new PriceRangeResponse(category.name(), minPrice, maxPrice));
         }
         return priceRanges;
+    }
+
+    /**
+     * 요구사항 2: 선택한 카테고리의 상품을 모두 구매할 때 최저가 브랜드와 총액 조회
+     */
+    public List<CheapestBrandResponse.BrandTotal> findCheapestBrandTotal(List<Category> categories) {
+        log.debug("Finding cheapest brand total for categories: {}", categories);
+        
+        if (categories == null || categories.isEmpty()) {
+            log.error("Categories list is null or empty");
+            throw new IllegalArgumentException("Categories list cannot be empty");
+        }
+
+        // Get all products for the requested categories
+        List<Product> products = productRepository.findByCategoryIn(categories);
+        if (products.isEmpty()) {
+            log.error("No products found for categories: {}", categories);
+            throw new IllegalArgumentException("No products found for the selected categories");
+        }
+
+        // Group products by brand and category
+        Map<Brand, Map<Category, Integer>> brandCategoryPrices = products.stream()
+            .collect(Collectors.groupingBy(
+                Product::getBrand,
+                Collectors.groupingBy(
+                    Product::getCategory,
+                    Collectors.collectingAndThen(
+                        Collectors.minBy(Comparator.comparingInt(Product::getPrice)),
+                        opt -> opt.map(Product::getPrice).orElse(Integer.MAX_VALUE)
+                    )
+                )
+            ));
+
+        // Filter brands that have all requested categories
+        List<CheapestBrandResponse.BrandTotal> brandTotals = brandCategoryPrices.entrySet().stream()
+            .filter(entry -> {
+                Map<Category, Integer> categoryPrices = entry.getValue();
+                return categories.stream().allMatch(categoryPrices::containsKey);
+            })
+            .map(entry -> {
+                Brand brand = entry.getKey();
+                Map<Category, Integer> categoryPrices = entry.getValue();
+                List<CheapestBrandResponse.CategoryPrice> categoryPriceList = categoryPrices.entrySet().stream()
+                    .map(cp -> new CheapestBrandResponse.CategoryPrice(cp.getKey().name(), cp.getValue()))
+                    .toList();
+                int total = categoryPriceList.stream()
+                    .mapToInt(CheapestBrandResponse.CategoryPrice::price)
+                    .sum();
+                return new CheapestBrandResponse.BrandTotal(brand.getName(), categoryPriceList, total);
+            })
+            .toList();
+
+        if (brandTotals.isEmpty()) {
+            log.warn("No brands found with all requested categories");
+            return Collections.emptyList();
+        }
+
+        // Find the minimum total
+        int minTotal = brandTotals.stream()
+            .mapToInt(CheapestBrandResponse.BrandTotal::total)
+            .min()
+            .orElse(Integer.MAX_VALUE);
+
+        // Filter brands with the minimum total
+        List<CheapestBrandResponse.BrandTotal> cheapestBrands = brandTotals.stream()
+            .filter(brandTotal -> brandTotal.total() == minTotal)
+            .toList();
+
+        log.debug("Found {} brands with minimum total of {}", cheapestBrands.size(), minTotal);
+        return cheapestBrands;
     }
 }

@@ -17,6 +17,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findFirstByCategoryOrderByPriceAsc(Category category);
     Optional<Product> findFirstByCategoryOrderByPriceDesc(Category category);
     boolean existsByBrandAndCategoryAndPrice(Brand brand, Category category, int price);
+    List<Product> findByCategoryIn(List<Category> categories);
 
     default List<Product> findPriceRangeProductsByCategory(Category category) {
         List<Integer> priceRange = List.of(
