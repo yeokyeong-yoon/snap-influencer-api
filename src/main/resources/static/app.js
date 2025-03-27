@@ -413,7 +413,40 @@ async function deleteProduct(productId) {
     }
 }
 
-// 페이지 로드 시 상품 목록 조회
+// 섹션 전환 함수
+function switchSection(sectionId) {
+    // 모든 섹션 숨기기
+    document.querySelectorAll('section').forEach(section => {
+        section.classList.remove('section-active');
+    });
+    
+    // 모든 네비게이션 링크 비활성화
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    
+    // 선택된 섹션 표시
+    document.getElementById(sectionId).classList.add('section-active');
+    
+    // 해당하는 네비게이션 링크 활성화
+    const navLink = document.querySelector(`.nav-link[onclick*="${sectionId}"]`);
+    if (navLink) {
+        navLink.classList.add('active');
+    }
+    
+    // URL 해시 업데이트
+    window.location.hash = sectionId;
+}
+
+// URL 해시 변경 시 해당 섹션으로 전환
+window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.slice(1);
+    if (hash && (hash === 'customer' || hash === 'admin')) {
+        switchSection(hash);
+    }
+});
+
+// 페이지 로드 시 URL 해시에 따라 섹션 전환
 document.addEventListener('DOMContentLoaded', () => {
     loadProducts();
     
@@ -426,6 +459,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('categoryFilter').addEventListener('change', () => {
         loadProducts();
     });
+    
+    // URL 해시에 따라 초기 섹션 설정
+    const hash = window.location.hash.slice(1);
+    if (hash && (hash === 'customer' || hash === 'admin')) {
+        switchSection(hash);
+    } else {
+        switchSection('customer'); // 기본값
+    }
 });
 
 // 디바운스 함수
