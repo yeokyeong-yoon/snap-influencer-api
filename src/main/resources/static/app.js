@@ -337,8 +337,33 @@ async function loadProducts() {
             throw new Error('Invalid response data structure');
         }
 
-        const products = data.data;
+        let products = data.data;
         console.log('Frontend: Processing products:', products);
+        
+        // 필터 적용
+        const brandFilter = document.getElementById('brandFilter').value.toLowerCase();
+        const categoryFilter = document.getElementById('categoryFilter').value;
+        
+        if (brandFilter) {
+            products = products.filter(product => 
+                product.brand.toLowerCase().includes(brandFilter)
+            );
+        }
+        
+        if (categoryFilter) {
+            products = products.filter(product => 
+                product.category === categoryFilter
+            );
+        }
+        
+        if (products.length === 0) {
+            document.getElementById('productList').innerHTML = `
+                <div class="alert alert-info">
+                    검색 조건에 맞는 상품이 없습니다.
+                </div>
+            `;
+            return;
+        }
         
         let html = '<div class="list-group">';
         products.forEach(product => {
@@ -391,4 +416,27 @@ async function deleteProduct(productId) {
 // 페이지 로드 시 상품 목록 조회
 document.addEventListener('DOMContentLoaded', () => {
     loadProducts();
-}); 
+    
+    // 브랜드 필터 입력 시 자동 검색
+    document.getElementById('brandFilter').addEventListener('input', debounce(() => {
+        loadProducts();
+    }, 300));
+    
+    // 카테고리 선택 시 자동 검색
+    document.getElementById('categoryFilter').addEventListener('change', () => {
+        loadProducts();
+    });
+});
+
+// 디바운스 함수
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+} 
