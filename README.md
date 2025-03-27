@@ -6,84 +6,220 @@
 
 ```mermaid
 graph TD
-    Client[Client] --> |HTTP| Controller[Controllers]
-    Controller --> |Service Layer| Service[Services]
-    Service --> |Repository Layer| Repository[Repositories]
-    Repository --> |JPA| DB[(H2 Database)]
-    
-    subgraph Controllers
-        AC[AdminController]
-        PC[ProductController]
+    %% Client Layer Definition
+    subgraph Client Layer[" 클라이언트 계층 "]
+        Client[Web Browser]
+        style Client fill:#fff,stroke:#333,stroke-width:2px
     end
-    
-    subgraph Services
-        AS[AdminService]
-        PS[ProductService]
+
+    %% MVC Architecture Definition
+    subgraph MVC Architecture[" MVC 아키텍처 "]
+        %% View Layer
+        subgraph View Layer[" 뷰 계층 "]
+            View[Static HTML/JS/CSS]
+            style View fill:#fff,stroke:#333,stroke-width:2px
+        end
+
+        %% Controller Layer
+        subgraph Controller Layer[" 컨트롤러 계층 "]
+            AC[Admin Controller]
+            PC[Product Controller]
+            style AC fill:#fff,stroke:#333,stroke-width:2px
+            style PC fill:#fff,stroke:#333,stroke-width:2px
+        end
+
+        %% Service Layer
+        subgraph Service Layer[" 서비스 계층 "]
+            AS[Admin Service]
+            PS[Product Service]
+            style AS fill:#fff,stroke:#333,stroke-width:2px
+            style PS fill:#fff,stroke:#333,stroke-width:2px
+        end
+
+        %% Repository Layer
+        subgraph Repository Layer[" 레포지토리 계층 "]
+            BR[Brand Repository]
+            PR[Product Repository]
+            style BR fill:#fff,stroke:#333,stroke-width:2px
+            style PR fill:#fff,stroke:#333,stroke-width:2px
+        end
     end
-    
-    subgraph Repositories
-        BR[BrandRepository]
-        PR[ProductRepository]
+
+    %% Database Layer Definition
+    subgraph Database Layer[" 데이터베이스 계층 "]
+        DB[(H2 Database)]
+        style DB fill:#fff,stroke:#333,stroke-width:2px
     end
+
+    %% Relationships
+    Client -->|HTTP 요청| View
+    View -->|REST API 호출| Controller Layer
+    AC -->|브랜드/상품 관리| AS
+    PC -->|상품 조회| PS
+    AS -->|브랜드 CRUD| BR
+    AS -->|상품 CRUD| PR
+    PS -->|상품 조회| PR
+    BR & PR -->|JPA/Hibernate| DB
+
+    %% Styles for layers
+    style Client Layer fill:#f8f9fa,stroke:#333,stroke-width:2px
+    style MVC Architecture fill:#ffffff,stroke:#666,stroke-width:3px
+    style View Layer fill:#e3f2fd,stroke:#333,stroke-width:2px
+    style Controller Layer fill:#fff3e0,stroke:#333,stroke-width:2px
+    style Service Layer fill:#e8f5e9,stroke:#333,stroke-width:2px
+    style Repository Layer fill:#fce4ec,stroke:#333,stroke-width:2px
+    style Database Layer fill:#f3e5f5,stroke:#333,stroke-width:2px
 ```
 
 ## 클래스 다이어그램
 
 ```mermaid
 classDiagram
-    class Brand {
-        -Long id
-        -String name
-        +getId()
-        +getName()
-        +setName()
+    %% Domain Models
+    namespace Domain {
+        class Brand {
+            <<domain>>
+            -Long id
+            -String name
+            +getId(): Long
+            +getName(): String
+            +setName(String): void
+        }
+        
+        class Product {
+            <<domain>>
+            -Long id
+            -Brand brand
+            -Category category
+            -int price
+            +getId(): Long
+            +getBrand(): Brand
+            +getCategory(): Category
+            +getPrice(): int
+        }
+        
+        class Category {
+            <<enumeration>>
+            TOP(탑)
+            OUTER(아우터)
+            PANTS(바지)
+            SNEAKERS(운동화)
+            BAG(가방)
+            HAT(모자)
+            SOCKS(양말)
+            ACCESSORY(액세서리)
+        }
     }
-    
-    class Product {
-        -Long id
-        -Brand brand
-        -Category category
-        -int price
-        +getId()
-        +getBrand()
-        +getCategory()
-        +getPrice()
+
+    %% DTOs
+    namespace DTO {
+        class BrandRequest {
+            <<dto>>
+            -String name
+        }
+
+        class ProductRequest {
+            <<dto>>
+            -String brandName
+            -Category category
+            -int price
+        }
+
+        class CategoryLowestPriceResponse {
+            <<dto>>
+            -Map~Category, BrandPrice~ lowestPrices
+            -int total
+        }
+
+        class CheapestBrandResponse {
+            <<dto>>
+            -String brandName
+            -Map~Category, Integer~ prices
+            -int total
+        }
     }
-    
-    class Category {
-        <<enumeration>>
-        TOP
-        OUTER
-        PANTS
-        SNEAKERS
-        BAG
-        HAT
-        SOCKS
-        ACCESSORY
+
+    %% Controllers
+    namespace Web {
+        class AdminController {
+            <<controller>>
+            -AdminService adminService
+            +registerBrand(BrandRequest): ResponseEntity
+            +updateBrand(Long, BrandRequest): ResponseEntity
+            +deleteBrand(Long): ResponseEntity
+            +registerProduct(ProductRequest): ResponseEntity
+            +getAllProducts(): ResponseEntity
+        }
+
+        class ProductController {
+            <<controller>>
+            -ProductService productService
+            +getLowestPricesByCategory(): ResponseEntity
+            +getCheapestBrandTotal(): ResponseEntity
+            +getPriceRangeByCategory(Category): ResponseEntity
+        }
     }
-    
-    class AdminService {
-        +registerBrand()
-        +updateBrand()
-        +deleteBrand()
-        +registerProduct()
-        +updateProduct()
-        +deleteProduct()
-        +getAllBrands()
-        +getAllProducts()
+
+    %% Services
+    namespace Service {
+        class AdminService {
+            <<service>>
+            -BrandRepository brandRepository
+            -ProductRepository productRepository
+            +registerBrand(BrandRequest): Brand
+            +updateBrand(Long, BrandRequest): Brand
+            +deleteBrand(Long): void
+            +registerProduct(ProductRequest): Product
+            +getAllProducts(): List~Product~
+        }
+        
+        class ProductService {
+            <<service>>
+            -ProductRepository productRepository
+            +findLowestPricesByCategory(): CategoryLowestPriceResponse
+            +findCheapestBrandTotal(): CheapestBrandResponse
+            +findPriceRangeByCategory(Category): CategoryPriceResponse
+        }
     }
-    
-    class ProductService {
-        +findLowestPricesByCategory()
-        +findCheapestBrandTotal()
-        +findPriceRangeByCategory()
+
+    %% Repositories
+    namespace Repository {
+        class BrandRepository {
+            <<interface>>
+            +findByName(String): Optional~Brand~
+            +existsByName(String): boolean
+        }
+
+        class ProductRepository {
+            <<interface>>
+            +findByCategory(Category): List~Product~
+            +findByBrand(Brand): List~Product~
+            +existsByBrandAndCategoryAndPrice(Brand, Category, int): boolean
+        }
     }
+
+    %% Domain Relationships
+    Product "1" --> "1" Brand: belongs to >
+    Product "1" --> "1" Category: has type >
     
-    Product --> "1" Brand
-    Product --> "1" Category
-    AdminService --> BrandRepository
-    AdminService --> ProductRepository
-    ProductService --> ProductRepository
+    %% Controller-Service Relationships
+    AdminController --> AdminService: uses >
+    ProductController --> ProductService: uses >
+    
+    %% Service-Repository Relationships
+    AdminService --> BrandRepository: uses >
+    AdminService --> ProductRepository: uses >
+    ProductService --> ProductRepository: uses >
+
+    %% DTO Relationships
+    AdminController ..> BrandRequest: uses >
+    AdminController ..> ProductRequest: uses >
+    ProductController ..> CategoryLowestPriceResponse: returns >
+    ProductController ..> CheapestBrandResponse: returns >
+
+    %% Repository-Domain Relationships
+    BrandRepository ..> Brand: manages >
+    ProductRepository ..> Product: manages >
 ```
 
 ## 기능
