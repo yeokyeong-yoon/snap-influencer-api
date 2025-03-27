@@ -5,70 +5,59 @@
 ## 시스템 아키텍처
 
 ```mermaid
-graph TD
-    %% Client Layer Definition
-    subgraph Client Layer[" 클라이언트 계층 "]
-        Client[Web Browser]
-        style Client fill:#fff,stroke:#333,stroke-width:2px
+flowchart TD
+    %% Client Layer
+    subgraph CL[클라이언트 계층]
+        C[Web Browser]
     end
 
-    %% MVC Architecture Definition
-    subgraph MVC Architecture[" MVC 아키텍처 "]
+    %% MVC Architecture
+    subgraph MVC[MVC 아키텍처]
         %% View Layer
-        subgraph View Layer[" 뷰 계층 "]
-            View[Static HTML/JS/CSS]
-            style View fill:#fff,stroke:#333,stroke-width:2px
+        subgraph VL[뷰 계층]
+            V[Static HTML/JS/CSS]
         end
 
         %% Controller Layer
-        subgraph Controller Layer[" 컨트롤러 계층 "]
+        subgraph CL2[컨트롤러 계층]
             AC[Admin Controller]
             PC[Product Controller]
-            style AC fill:#fff,stroke:#333,stroke-width:2px
-            style PC fill:#fff,stroke:#333,stroke-width:2px
         end
 
         %% Service Layer
-        subgraph Service Layer[" 서비스 계층 "]
+        subgraph SL[서비스 계층]
             AS[Admin Service]
             PS[Product Service]
-            style AS fill:#fff,stroke:#333,stroke-width:2px
-            style PS fill:#fff,stroke:#333,stroke-width:2px
         end
 
         %% Repository Layer
-        subgraph Repository Layer[" 레포지토리 계층 "]
+        subgraph RL[레포지토리 계층]
             BR[Brand Repository]
             PR[Product Repository]
-            style BR fill:#fff,stroke:#333,stroke-width:2px
-            style PR fill:#fff,stroke:#333,stroke-width:2px
         end
     end
 
-    %% Database Layer Definition
-    subgraph Database Layer[" 데이터베이스 계층 "]
+    %% Database Layer
+    subgraph DL[데이터베이스 계층]
         DB[(H2 Database)]
-        style DB fill:#fff,stroke:#333,stroke-width:2px
     end
 
-    %% Relationships
-    Client -->|HTTP 요청| View
-    View -->|REST API 호출| Controller Layer
-    AC -->|브랜드/상품 관리| AS
-    PC -->|상품 조회| PS
-    AS -->|브랜드 CRUD| BR
-    AS -->|상품 CRUD| PR
-    PS -->|상품 조회| PR
-    BR & PR -->|JPA/Hibernate| DB
+    %% Flow
+    C --> |HTTP 요청| V
+    V --> |REST API 호출| CL2
+    AC --> |브랜드/상품 관리| AS
+    PC --> |상품 조회| PS
+    AS --> |브랜드 CRUD| BR
+    AS --> |상품 CRUD| PR
+    PS --> |상품 조회| PR
+    BR & PR --> |JPA/Hibernate| DB
 
-    %% Styles for layers
-    style Client Layer fill:#f8f9fa,stroke:#333,stroke-width:2px
-    style MVC Architecture fill:#ffffff,stroke:#666,stroke-width:3px
-    style View Layer fill:#e3f2fd,stroke:#333,stroke-width:2px
-    style Controller Layer fill:#fff3e0,stroke:#333,stroke-width:2px
-    style Service Layer fill:#e8f5e9,stroke:#333,stroke-width:2px
-    style Repository Layer fill:#fce4ec,stroke:#333,stroke-width:2px
-    style Database Layer fill:#f3e5f5,stroke:#333,stroke-width:2px
+    %% Styling
+    classDef default fill:#fff,stroke:#333,stroke-width:2px
+    classDef layer fill:#f8f9fa,stroke:#333,stroke-width:2px
+    
+    class C,V,AC,PC,AS,PS,BR,PR,DB default
+    class CL,MVC,VL,CL2,SL,RL,DL layer
 ```
 
 ## 클래스 다이어그램
@@ -202,6 +191,10 @@ classDiagram
     Product "1" --> "1" Brand: belongs to >
     Product "1" --> "1" Category: has type >
     
+    %% Repository-Domain Relationships
+    BrandRepository ..> Brand: manages >
+    ProductRepository ..> Product: manages >
+
     %% Controller-Service Relationships
     AdminController --> AdminService: uses >
     ProductController --> ProductService: uses >
@@ -216,10 +209,6 @@ classDiagram
     AdminController ..> ProductRequest: uses >
     ProductController ..> CategoryLowestPriceResponse: returns >
     ProductController ..> CheapestBrandResponse: returns >
-
-    %% Repository-Domain Relationships
-    BrandRepository ..> Brand: manages >
-    ProductRepository ..> Product: manages >
 ```
 
 ## 기능
