@@ -13,8 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -35,36 +35,43 @@ class CategoryServiceTest {
 
     @BeforeEach
     void setUp() {
-        brandA = new Brand();
-        brandA.setName("A");
+        brandA = createBrand("A");
+        brandB = createBrand("B");
+        brandC = createBrand("C");
+    }
 
-        brandB = new Brand();
-        brandB.setName("B");
+    // Helper methods for creating test data
+    private Brand createBrand(String name) {
+        Brand brand = new Brand();
+        brand.setName(name);
+        return brand;
+    }
 
-        brandC = new Brand();
-        brandC.setName("C");
+    private Product createProduct(Brand brand, Category category, int price) {
+        Product product = new Product();
+        product.setBrand(brand);
+        product.setCategory(category);
+        product.setPrice(price);
+        return product;
+    }
+
+    private List<Product> createProductList(Map<Brand, Integer> prices) {
+        return prices.entrySet().stream()
+                .map(entry -> createProduct(entry.getKey(), Category.TOP, entry.getValue()))
+                .toList();
     }
 
     @Test
     void comparePricesInCategory_ShouldReturnCheapestAndMostExpensiveProducts() {
         // Given
-        Product product1 = new Product();
-        product1.setBrand(brandA);
-        product1.setCategory(Category.TOP);
-        product1.setPrice(10000);
+        Map<Brand, Integer> prices = Map.of(
+            brandA, 10000,
+            brandB, 15000,
+            brandC, 8000
+        );
 
-        Product product2 = new Product();
-        product2.setBrand(brandB);
-        product2.setCategory(Category.TOP);
-        product2.setPrice(15000);
-
-        Product product3 = new Product();
-        product3.setBrand(brandC);
-        product3.setCategory(Category.TOP);
-        product3.setPrice(8000);
-
-        when(productRepository.findPriceRangeProductsByCategory(Category.TOP.name()))
-                .thenReturn(Arrays.asList(product1, product2, product3));
+        when(productRepository.findPriceRangeProductsByCategory(Category.TOP))
+                .thenReturn(createProductList(prices));
 
         // When
         CategoryPriceComparisonResponse response = categoryService.comparePricesInCategory(Category.TOP);
@@ -84,59 +91,78 @@ class CategoryServiceTest {
     }
 
     @Test
-    void comparePricesInCategory_WhenMultipleProductsWithSamePrice_ShouldReturnAll() {
+    void comparePricesInCategory_WhenProductsHaveDifferentPrices_ShouldReturnCheapestAndMostExpensive() {
         // Given
-        Product product1 = new Product();
-        product1.setBrand(brandA);
-        product1.setCategory(Category.TOP);
-        product1.setPrice(10000);
+        Map<Brand, Integer> prices = Map.of(
+            brandA, 10000,
+            brandB, 15000,
+            brandC, 8000
+        );
 
-        Product product2 = new Product();
-        product2.setBrand(brandB);
-        product2.setCategory(Category.TOP);
-        product2.setPrice(10000);
-
-        Product product3 = new Product();
-        product3.setBrand(brandC);
-        product3.setCategory(Category.TOP);
-        product3.setPrice(8000);
-
-        Product product4 = new Product();
-        product4.setBrand(brandA);
-        product4.setCategory(Category.TOP);
-        product4.setPrice(15000);
-
-        Product product5 = new Product();
-        product5.setBrand(brandB);
-        product5.setCategory(Category.TOP);
-        product5.setPrice(15000);
-
-        when(productRepository.findPriceRangeProductsByCategory(Category.TOP.name()))
-                .thenReturn(Arrays.asList(product1, product2, product3, product4, product5));
+        when(productRepository.findPriceRangeProductsByCategory(Category.TOP))
+                .thenReturn(createProductList(prices));
 
         // When
         CategoryPriceComparisonResponse response = categoryService.comparePricesInCategory(Category.TOP);
 
         // Then
         assertThat(response.category()).isEqualTo("TOP");
-        assertThat(response.cheapestProducts()).hasSize(1);
-        assertThat(response.mostExpensiveProducts()).hasSize(2);
+        
+        // Check cheapest products
+        List<ProductPriceDto> cheapestProducts = response.cheapestProducts();
+        assertThat(cheapestProducts).hasSize(1);
+        assertThat(cheapestProducts.get(0).brand()).isEqualTo("C");
+        assertThat(cheapestProducts.get(0).price()).isEqualTo(8000);
 
-        ProductPriceDto cheapest = response.cheapestProducts().get(0);
-        assertThat(cheapest.brand()).isEqualTo("C");
-        assertThat(cheapest.price()).isEqualTo(8000);
+        // Check most expensive products
+        List<ProductPriceDto> mostExpensiveProducts = response.mostExpensiveProducts();
+        assertThat(mostExpensiveProducts).hasSize(1);
+        assertThat(mostExpensiveProducts.get(0).brand()).isEqualTo("B");
+        assertThat(mostExpensiveProducts.get(0).price()).isEqualTo(15000);
+    }
 
-        List<ProductPriceDto> mostExpensive = response.mostExpensiveProducts();
-        assertThat(mostExpensive).extracting(ProductPriceDto::brand)
-                .containsExactlyInAnyOrder("A", "B");
-        assertThat(mostExpensive).extracting(ProductPriceDto::price)
-                .containsOnly(15000);
+    @Test
+    void comparePricesInCategory_WhenAllProductsHaveSamePrice_ShouldReturnAll() {
+        // Given
+        Map<Brand, Integer> prices = Map.of(
+            brandA, 10000,
+            brandB, 10000,
+            brandC, 10000
+        );
+
+        when(productRepository.findPriceRangeProductsByCategory(Category.TOP))
+                .thenReturn(createProductList(prices));
+
+        // When
+        CategoryPriceComparisonResponse response = categoryService.comparePricesInCategory(Category.TOP);
+
+        // Then
+        assertThat(response.category()).isEqualTo("TOP");
+        
+        // Check that all products are in both cheapest and most expensive lists
+        List<ProductPriceDto> cheapestProducts = response.cheapestProducts();
+        List<ProductPriceDto> mostExpensiveProducts = response.mostExpensiveProducts();
+        
+        assertThat(cheapestProducts).hasSize(3);
+        assertThat(mostExpensiveProducts).hasSize(3);
+        
+        // Verify all products have the same price
+        assertThat(cheapestProducts).extracting(ProductPriceDto::price)
+                .containsOnly(10000);
+        assertThat(mostExpensiveProducts).extracting(ProductPriceDto::price)
+                .containsOnly(10000);
+        
+        // Verify all brands are included
+        assertThat(cheapestProducts).extracting(ProductPriceDto::brand)
+                .containsExactlyInAnyOrder("A", "B", "C");
+        assertThat(mostExpensiveProducts).extracting(ProductPriceDto::brand)
+                .containsExactlyInAnyOrder("A", "B", "C");
     }
 
     @Test
     void comparePricesInCategory_WhenNoProducts_ShouldThrowException() {
         // Given
-        when(productRepository.findPriceRangeProductsByCategory(Category.TOP.name()))
+        when(productRepository.findPriceRangeProductsByCategory(Category.TOP))
                 .thenReturn(List.of());
 
         // When & Then
