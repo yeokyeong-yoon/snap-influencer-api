@@ -29,17 +29,13 @@ public class AdminService {
      */
     @Transactional
     public Brand registerBrand(BrandRequest request) {
-        log.info("Attempting to register brand with name: {}", request.name());
         if (brandRepository.existsByName(request.name())) {
-            log.error("Brand with name {} already exists", request.name());
             throw new IllegalArgumentException("이미 등록된 브랜드입니다: " + request.name());
         }
         
         Brand brand = new Brand();
         brand.setName(request.name());
-        Brand savedBrand = brandRepository.save(brand);
-        log.info("Successfully registered brand: {}", savedBrand.getName());
-        return savedBrand;
+        return brandRepository.save(brand);
     }
 
     /**
@@ -47,22 +43,15 @@ public class AdminService {
      */
     @Transactional
     public Brand updateBrand(Long brandId, BrandRequest request) {
-        log.info("Attempting to update brand with id: {} to name: {}", brandId, request.name());
         Brand brand = brandRepository.findById(brandId)
-                .orElseThrow(() -> {
-                    log.error("Brand not found with id: {}", brandId);
-                    return new IllegalArgumentException("존재하지 않는 브랜드입니다: " + brandId);
-                });
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 브랜드입니다: " + brandId));
         
         if (!brand.getName().equals(request.name()) && brandRepository.existsByName(request.name())) {
-            log.error("Brand with name {} already exists", request.name());
             throw new IllegalArgumentException("이미 등록된 브랜드입니다: " + request.name());
         }
         
         brand.setName(request.name());
-        Brand updatedBrand = brandRepository.save(brand);
-        log.info("Successfully updated brand: {}", updatedBrand.getName());
-        return updatedBrand;
+        return brandRepository.save(brand);
     }
 
     /**
@@ -70,13 +59,10 @@ public class AdminService {
      */
     @Transactional
     public void deleteBrand(Long brandId) {
-        log.info("Attempting to delete brand with id: {}", brandId);
         if (!brandRepository.existsById(brandId)) {
-            log.error("Brand not found with id: {}", brandId);
             throw new IllegalArgumentException("Brand not found with id: " + brandId);
         }
         brandRepository.deleteById(brandId);
-        log.info("Successfully deleted brand with id: {}", brandId);
     }
 
     /**
@@ -84,19 +70,11 @@ public class AdminService {
      */
     @Transactional
     public Product registerProduct(ProductRequest request) {
-        log.info("Attempting to register product for brand: {}, category: {}, price: {}", 
-                request.brand(), request.category(), request.price());
-        
         Brand brand = brandRepository.findByName(request.brand())
-                .orElseThrow(() -> {
-                    log.error("Brand not found with name: {}", request.brand());
-                    return new IllegalArgumentException("Brand not found with name: " + request.brand());
-                });
+                .orElseThrow(() -> new IllegalArgumentException("Brand not found with name: " + request.brand()));
         
         // Check for duplicate product
         if (productRepository.existsByBrandAndCategoryAndPrice(brand, request.category(), request.price())) {
-            log.error("Product already exists: brand={}, category={}, price={}", 
-                    request.brand(), request.category(), request.price());
             throw new IllegalArgumentException(
                 String.format("이미 등록된 상품입니다: 브랜드=%s, 카테고리=%s, 가격=%d", 
                     request.brand(), request.category(), request.price())
@@ -108,10 +86,7 @@ public class AdminService {
         product.setCategory(request.category());
         product.setPrice(request.price());
         
-        Product savedProduct = productRepository.save(product);
-        log.info("Successfully registered product with id: {} for brand: {}", 
-                savedProduct.getId(), savedProduct.getBrand().getName());
-        return savedProduct;
+        return productRepository.save(product);
     }
 
     /**
@@ -119,29 +94,17 @@ public class AdminService {
      */
     @Transactional
     public Product updateProduct(Long productId, ProductRequest request) {
-        log.info("Attempting to update product with id: {} for brand: {}, category: {}, price: {}", 
-                productId, request.brand(), request.category(), request.price());
-        
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> {
-                    log.error("Product not found with id: {}", productId);
-                    return new IllegalArgumentException("Product not found with id: " + productId);
-                });
+                .orElseThrow(() -> new IllegalArgumentException("Product not found with id: " + productId));
         
         Brand brand = brandRepository.findByName(request.brand())
-                .orElseThrow(() -> {
-                    log.error("Brand not found with name: {}", request.brand());
-                    return new IllegalArgumentException("Brand not found with name: " + request.brand());
-                });
+                .orElseThrow(() -> new IllegalArgumentException("Brand not found with name: " + request.brand()));
         
         product.setBrand(brand);
         product.setCategory(request.category());
         product.setPrice(request.price());
         
-        Product updatedProduct = productRepository.save(product);
-        log.info("Successfully updated product with id: {} for brand: {}", 
-                updatedProduct.getId(), updatedProduct.getBrand().getName());
-        return updatedProduct;
+        return productRepository.save(product);
     }
 
     /**
@@ -149,13 +112,10 @@ public class AdminService {
      */
     @Transactional
     public void deleteProduct(Long productId) {
-        log.info("Attempting to delete product with id: {}", productId);
         if (!productRepository.existsById(productId)) {
-            log.error("Product not found with id: {}", productId);
             throw new IllegalArgumentException("Product not found with id: " + productId);
         }
         productRepository.deleteById(productId);
-        log.info("Successfully deleted product with id: {}", productId);
     }
 
     /**
@@ -163,7 +123,6 @@ public class AdminService {
      */
     @Transactional(readOnly = true)
     public List<Brand> getAllBrands() {
-        log.debug("Fetching all brands");
         return brandRepository.findAll();
     }
 
@@ -172,7 +131,6 @@ public class AdminService {
      */
     @Transactional(readOnly = true)
     public List<Product> getAllProducts() {
-        log.debug("Fetching all products");
         return productRepository.findAll();
     }
 } 
